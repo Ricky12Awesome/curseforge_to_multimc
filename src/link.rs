@@ -1,11 +1,11 @@
 use std::fmt::Formatter;
+use std::fs::{create_dir, File};
+use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
 
 use crate::modpack::CFModPack;
-use crate::util::{CurseForgeDirectory, MultiMCDirectory, Directory};
-use std::fs::{File, create_dir};
-use std::io::{Read, Write};
+use crate::util::{CurseForgeDirectory, Directory, MultiMCDirectory};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CFModPackManifest {

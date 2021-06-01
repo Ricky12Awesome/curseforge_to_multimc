@@ -1,5 +1,6 @@
-use std::path::{Path, PathBuf};
 use std::fmt::Formatter;
+use std::path::{Path, PathBuf};
+
 use crate::CurseForgeToMultiMC;
 use crate::make_multi_mut_ref;
 use crate::util::Directory;

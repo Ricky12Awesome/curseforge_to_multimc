@@ -39,7 +39,7 @@ pub trait Directory {
   }
 
   fn browse(&mut self) {
-    let mut  fd = native_dialog::FileDialog::default();
+    let mut fd = native_dialog::FileDialog::default();
 
     if self.path().exists() {
       fd = fd.set_location(self.path());

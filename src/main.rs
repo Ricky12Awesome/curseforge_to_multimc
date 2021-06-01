@@ -1,8 +1,10 @@
-use iced::*;
-use crate::util::{MultiMCDirectory, CurseForgeDirectory, Directory};
-use std::path::Path;
-use crate::modpack::{CFModPack, CFModPackCache};
 use std::marker::PhantomData;
+use std::path::Path;
+
+use iced::*;
+
+use crate::modpack::{CFModPack, CFModPackCache};
+use crate::util::{CurseForgeDirectory, Directory, MultiMCDirectory};
 
 mod util;
 mod link;
@@ -98,7 +100,7 @@ impl<'a> CurseForgeToMultiMC<'a> {
           .size(IMPORTANT_SIZE)
           .color(Color::new(0.75, 0.0, 0.0, 1.0))
           .into()
-      },
+      }
       _ => Space::with_height(Length::Units(0)).into(),
     }
   }
