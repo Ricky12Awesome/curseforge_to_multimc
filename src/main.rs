@@ -12,7 +12,8 @@ mod link;
 mod modpack;
 
 const TITLE: &'static str = "CurseForge to MultiMC";
-const IMPORTANT_SIZE: u16 = 35;
+const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
+const IMPORTANT_SIZE: u16 = 28;
 
 #[macro_export]
 macro_rules! make_multi_mut_ref {
@@ -27,8 +28,8 @@ macro_rules! make_multi_ref {
 fn main() -> iced::Result {
   <CurseForgeToMultiMC as Sandbox>::run(Settings {
     window: window::Settings {
-      size: (1280, 720),
-      min_size: Some((640, 480)),
+      size: (900, 640),
+      min_size: Some((900, 480)),
       ..Default::default()
     },
     ..Default::default()
@@ -46,6 +47,7 @@ pub struct CurseForgeToMultiMC<'a> {
   pick_cf_mp: pick_list::State<CFModPack>,
   link_btn_state: button::State,
   open_btn_state: button::State,
+  github_btn_state: button::State,
   pick_cf_mp_cache: CFModPackCache,
   selected_cf_mp: Option<CFModPack>,
   info: Option<(bool, String)>,
@@ -60,7 +62,8 @@ pub enum Message {
   CFBrowse,
   CFMPPicked(CFModPack),
   Link,
-  Open
+  Open,
+  OpenGithub
 }
 
 impl<'a> CurseForgeToMultiMC<'a> {
@@ -165,6 +168,11 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
           }
         }
       }
+      Message::OpenGithub => {
+        let result = open::that(GITHUB_URL);
+
+        self.info = result.err().map(|it| (true, it.to_string()))
+      }
     }
   }
 
@@ -200,7 +208,19 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
           .size(IMPORTANT_SIZE)
           .color(Color::new(0.75, 0.0, 0.0, 1.0))
       )
+      .push(
+        Text::new("This can't detect the icon of the pack, so you need to change that yourself \
+         by downloading the image and placing it in your icons folder for MultiMC")
+          .size(IMPORTANT_SIZE)
+          .color(Color::new(0.75, 0.0, 0.0, 1.0))
+      )
       .push(Space::new(Length::Fill, Length::Fill))
+      .push(
+        Button::new(
+          make_multi_mut_ref!(&mut self.github_btn_state, button::State),
+          Text::new("Github")
+        ).on_press(Message::OpenGithub)
+      )
       .push(
         match &self.selected_cf_mp {
           Some(mp) => Button::new(
