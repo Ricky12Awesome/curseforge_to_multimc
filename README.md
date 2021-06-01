@@ -18,7 +18,7 @@ Build
 Not tested, but this should work.
 You need to have rust installed to build.
 ```
-git clone https://github.com/Ricky12Awesome/multimc_to_curseforge.git
-cd multimc_to_curseforge
+git clone https://github.com/Ricky12Awesome/curseforge_to_multimc.git
+cd curseforge_to_multimc
 cargo build
 ```
