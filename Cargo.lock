@@ -398,9 +398,11 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "native-dialog",
+ "open",
  "serde",
  "serde_json",
  "symlink",
+ "thiserror",
 ]
 
 [[package]]
@@ -1712,6 +1714,16 @@ name = "once_cell"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
+
+[[package]]
+name = "open"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1711eb4b31ce4ad35b0f316d8dfba4fe5c7ad601c448446d84aae7a896627b20"
+dependencies = [
+ "which",
+ "winapi 0.3.9",
+]
 
 [[package]]
 name = "ordered-float"

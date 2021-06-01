@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use std::marker::PhantomData;
 use std::path::Path;
 
@@ -24,7 +25,14 @@ macro_rules! make_multi_ref {
 }
 
 fn main() -> iced::Result {
-  <CurseForgeToMultiMC as Sandbox>::run(Settings::<()>::default())
+  <CurseForgeToMultiMC as Sandbox>::run(Settings {
+    window: window::Settings {
+      size: (1280, 720),
+      min_size: Some((640, 480)),
+      ..Default::default()
+    },
+    ..Default::default()
+  })
 }
 
 #[derive(Default)]
@@ -37,9 +45,10 @@ pub struct CurseForgeToMultiMC<'a> {
   cf_browse_state: button::State,
   pick_cf_mp: pick_list::State<CFModPack>,
   link_btn_state: button::State,
+  open_btn_state: button::State,
   pick_cf_mp_cache: CFModPackCache,
   selected_cf_mp: Option<CFModPack>,
-  link_result: Option<crate::link::Result>,
+  info: Option<(bool, String)>,
   _data: PhantomData<&'a ()>, // Just in case I need it later
 }
 
@@ -51,6 +60,7 @@ pub enum Message {
   CFBrowse,
   CFMPPicked(CFModPack),
   Link,
+  Open
 }
 
 impl<'a> CurseForgeToMultiMC<'a> {
@@ -87,16 +97,16 @@ impl<'a> CurseForgeToMultiMC<'a> {
   }
 
   fn show_result(&self) -> Element<Message> {
-    match &self.link_result {
-      Some(Ok(_)) => {
+    match &self.info {
+      Some((false, _)) => {
         Text::new("Link Successful")
           .size(IMPORTANT_SIZE)
           .color(Color::new(0.0, 0.75, 0.0, 1.0))
           .into()
       }
-      Some(Err(err)) => {
+      Some((true, err)) => {
         println!("[Link Result Error]: {:?}", err);
-        Text::new(format!("{}", err))
+        Text::new(err)
           .size(IMPORTANT_SIZE)
           .color(Color::new(0.75, 0.0, 0.0, 1.0))
           .into()
@@ -133,15 +143,26 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       }
       Message::CFMPPicked(new) => {
         self.selected_cf_mp = Some(new);
-        self.link_result = None;
+        self.info = None;
       }
       Message::Link => {
         if let Some(selected) = &self.selected_cf_mp {
-          self.link_result = Some(crate::link::link(
+          let result = crate::link::link(
             self.mmc_d.clone(),
             self.cf_d.clone(),
             selected.clone(),
-          ));
+          );
+
+          self.info = result.err().map(|it| (true, it.to_string()))
+        }
+      }
+      Message::Open => {
+        if let Some(selected) = &self.selected_cf_mp {
+          if let Some(dir) = &selected.dir {
+            let result = open::that(dir);
+
+            self.info = result.err().map(|it| (true, it.to_string()))
+          }
         }
       }
     }
@@ -184,11 +205,23 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
         match &self.selected_cf_mp {
           Some(mp) => Button::new(
             make_multi_mut_ref!(&mut self.link_btn_state, button::State),
-            Text::new(format!("Link Selected ({})", mp)),
+            Text::new(format!("Link ({})", mp)),
           ).on_press(Message::Link),
           None => Button::new(
             make_multi_mut_ref!(&mut self.link_btn_state, button::State),
-            Text::new("Link Selected (None)"),
+            Text::new("Link (None)"),
+          )
+        }
+      )
+      .push(
+        match &self.selected_cf_mp {
+          Some(mp) => Button::new(
+            make_multi_mut_ref!(&mut self.open_btn_state, button::State),
+            Text::new(format!("Open ({})", mp)),
+          ).on_press(Message::Open),
+          None => Button::new(
+            make_multi_mut_ref!(&mut self.open_btn_state, button::State),
+            Text::new("Open (None)"),
           )
         }
       )

@@ -8,6 +8,8 @@ edition = "2018"
 
 [dependencies]
 iced = "0.3.0"
+thiserror = "1.0.25"
+open = "1.7.0"
 symlink = "0.1.0"
 native-dialog = "0.5.5"
 serde = { version = "1.0.126", features = ["derive"] }
