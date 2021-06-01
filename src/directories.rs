@@ -46,9 +46,6 @@ pub trait Directory {
     }
 
     let dir = fd.show_open_single_dir();
-
-    dbg!(&dir);
-
     let dir = dir.unwrap_or_default().unwrap_or_default();
 
     self.new_path(dir.as_path().into());

@@ -5,7 +5,7 @@ use std::io::{Read, Write};
 use serde::{Deserialize, Serialize};
 
 use crate::modpack::CFModPack;
-use crate::util::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CFModPackManifest {

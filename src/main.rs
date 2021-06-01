@@ -1,13 +1,14 @@
 #![windows_subsystem = "windows"]
+
 use std::marker::PhantomData;
 use std::path::Path;
 
 use iced::*;
 
-use crate::modpack::{CFModPack, CFModPackCache};
-use crate::util::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::modpack::CFModPack;
+use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 
-mod util;
+mod directories;
 mod link;
 mod modpack;
 
@@ -15,15 +16,15 @@ const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
 const IMPORTANT_SIZE: u16 = 28;
 
-#[macro_export]
-macro_rules! make_multi_mut_ref {
-  ($v:expr, $c:ty) => { unsafe { &mut *($v as *mut $c) } };
-}
-
-#[macro_export]
-macro_rules! make_multi_ref {
-  ($v:expr, $c:ty) => { unsafe { &*($v as *const $c) } };
-}
+// #[macro_export]
+// macro_rules! make_multi_mut_ref {
+//   ($v:expr, $c:ty) => { unsafe { &mut *($v as *mut $c) } };
+// }
+//
+// #[macro_export]
+// macro_rules! make_multi_ref {
+//   ($v:expr, $c:ty) => { unsafe { &*($v as *const $c) } };
+// }
 
 fn main() -> iced::Result {
   <CurseForgeToMultiMC as Sandbox>::run(Settings {
@@ -48,7 +49,6 @@ pub struct CurseForgeToMultiMC<'a> {
   link_btn_state: button::State,
   open_btn_state: button::State,
   github_btn_state: button::State,
-  pick_cf_mp_cache: CFModPackCache,
   selected_cf_mp: Option<CFModPack>,
   info: Option<(bool, String)>,
   _data: PhantomData<&'a ()>, // Just in case I need it later
@@ -63,60 +63,10 @@ pub enum Message {
   CFMPPicked(CFModPack),
   Link,
   Open,
-  OpenGithub
+  OpenGithub,
 }
 
 impl<'a> CurseForgeToMultiMC<'a> {
-  fn mmc_d(&mut self) -> Element<Message> {
-    Row::new()
-      .push(Text::new("MultiMC Directory: "))
-      .push(
-        TextInput::new(
-          &mut self.mmc_ti_d_state, "", &self.mmc_d.name(),
-          Message::MMCDirectoryChange,
-        )
-      )
-      .push(
-        Button::new(&mut self.mmc_browse_state, Text::new("Browse"))
-          .on_press(Message::MMCBrowse)
-      )
-      .into()
-  }
-
-  fn cf_d(&mut self) -> Element<Message> {
-    Row::new()
-      .push(Text::new("CurseForge Directory: "))
-      .push(
-        TextInput::new(
-          &mut self.cf_ti_d_state, "", &self.cf_d.name(),
-          Message::CFDirectoryChange,
-        )
-      )
-      .push(
-        Button::new(&mut self.cf_browse_state, Text::new("Browse"))
-          .on_press(Message::CFBrowse)
-      )
-      .into()
-  }
-
-  fn show_result(&self) -> Element<Message> {
-    match &self.info {
-      Some((false, _)) => {
-        Text::new("Link Successful")
-          .size(IMPORTANT_SIZE)
-          .color(Color::new(0.0, 0.75, 0.0, 1.0))
-          .into()
-      }
-      Some((true, err)) => {
-        println!("[Link Result Error]: {:?}", err);
-        Text::new(err)
-          .size(IMPORTANT_SIZE)
-          .color(Color::new(0.75, 0.0, 0.0, 1.0))
-          .into()
-      }
-      _ => Space::with_height(Length::Units(0)).into(),
-    }
-  }
 }
 
 impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
@@ -181,12 +131,38 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       .padding(20)
       .spacing(8)
       .align_items(Align::Center)
-      .push(make_multi_mut_ref!(self, Self).mmc_d())
-      .push(make_multi_mut_ref!(self, Self).cf_d())
+      .push(
+        Row::new()
+          .push(Text::new("MultiMC Directory: "))
+          .push(
+            TextInput::new(
+              &mut self.mmc_ti_d_state, "", &self.mmc_d.name(),
+              Message::MMCDirectoryChange,
+            )
+          )
+          .push(
+            Button::new(&mut self.mmc_browse_state, Text::new("Browse"))
+              .on_press(Message::MMCBrowse)
+          )
+      )
+      .push(
+        Row::new()
+          .push(Text::new("CurseForge Directory: "))
+          .push(
+            TextInput::new(
+              &mut self.cf_ti_d_state, "", &self.cf_d.name(),
+              Message::CFDirectoryChange,
+            )
+          )
+          .push(
+            Button::new(&mut self.cf_browse_state, Text::new("Browse"))
+              .on_press(Message::CFBrowse)
+          )
+      )
       .push(
         PickList::new(
-          make_multi_mut_ref!(&mut self.pick_cf_mp, pick_list::State<_>),
-          CFModPack::list(make_multi_mut_ref!(self, Self)),
+          &mut self.pick_cf_mp,
+          CFModPack::list(self.cf_d.clone(), &mut self.selected_cf_mp),
           self.selected_cf_mp.clone(),
           Message::CFMPPicked,
         ).width(Length::Fill)
@@ -217,18 +193,18 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       .push(Space::new(Length::Fill, Length::Fill))
       .push(
         Button::new(
-          make_multi_mut_ref!(&mut self.github_btn_state, button::State),
-          Text::new("Github")
+          &mut self.github_btn_state,
+          Text::new("Github"),
         ).on_press(Message::OpenGithub)
       )
       .push(
         match &self.selected_cf_mp {
           Some(mp) => Button::new(
-            make_multi_mut_ref!(&mut self.link_btn_state, button::State),
+            &mut self.link_btn_state,
             Text::new(format!("Link ({})", mp)),
           ).on_press(Message::Link),
           None => Button::new(
-            make_multi_mut_ref!(&mut self.link_btn_state, button::State),
+            &mut self.link_btn_state,
             Text::new("Link (None)"),
           )
         }
@@ -236,16 +212,33 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       .push(
         match &self.selected_cf_mp {
           Some(mp) => Button::new(
-            make_multi_mut_ref!(&mut self.open_btn_state, button::State),
+            &mut self.open_btn_state,
             Text::new(format!("Open ({})", mp)),
           ).on_press(Message::Open),
           None => Button::new(
-            make_multi_mut_ref!(&mut self.open_btn_state, button::State),
+            &mut self.open_btn_state,
             Text::new("Open (None)"),
           )
         }
       )
-      .push(make_multi_ref!(self, Self).show_result())
+      .push::<Element<Message>>(
+        match &self.info {
+          Some((false, _)) => {
+            Text::new("Link Successful")
+              .size(IMPORTANT_SIZE)
+              .color(Color::new(0.0, 0.75, 0.0, 1.0))
+              .into()
+          }
+          Some((true, err)) => {
+            println!("[Link Result Error]: {:?}", err);
+            Text::new(err)
+              .size(IMPORTANT_SIZE)
+              .color(Color::new(0.75, 0.0, 0.0, 1.0))
+              .into()
+          }
+          _ => Space::with_height(Length::Units(0)).into(),
+        }
+      )
       .into()
   }
 }

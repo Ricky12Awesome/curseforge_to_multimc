@@ -1,15 +1,7 @@
 use std::fmt::Formatter;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use crate::CurseForgeToMultiMC;
-use crate::make_multi_mut_ref;
-use crate::util::Directory;
-
-#[derive(Default, Debug, Clone)]
-pub struct CFModPackCache {
-  path: Option<Box<Path>>,
-  storage: Vec<CFModPack>,
-}
+use crate::directories::{CurseForgeDirectory, Directory};
 
 #[derive(Default, Debug, Clone, PartialOrd, PartialEq)]
 pub struct CFModPack {
@@ -29,19 +21,10 @@ impl CFModPack {
     self.dir.clone().unwrap_or_default()
   }
 
-  pub fn list<'a>(app: &'a mut CurseForgeToMultiMC<'a>) -> &'a [CFModPack] {
-    let app_ref = make_multi_mut_ref!(app, CurseForgeToMultiMC);
-    let dir = &app.cf_d;
-    let cache = &mut app.pick_cf_mp_cache;
+  pub fn list(dir: CurseForgeDirectory, selected: &mut Option<CFModPack>) -> Vec<CFModPack> {
     let path = dir.path();
 
-    if let Some(cache_path) = &cache.path {
-      if cache_path.as_ref() == path {
-        return &cache.storage;
-      }
-    }
-
-    cache.storage = path
+    path
       .read_dir()
       .map(|it| it
         .map(|it| CFModPack {
@@ -49,9 +32,7 @@ impl CFModPack {
         })
         .collect::<Vec<_>>()
       )
-      .map_err(|_| app_ref.selected_cf_mp = None)
-      .unwrap_or_default();
-
-    &cache.storage
+      .map_err(|_| *selected = None)
+      .unwrap_or_default()
   }
 }
