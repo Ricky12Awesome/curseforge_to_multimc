@@ -66,8 +66,7 @@ pub enum Message {
   OpenGithub,
 }
 
-impl<'a> CurseForgeToMultiMC<'a> {
-}
+impl<'a> CurseForgeToMultiMC<'a> {}
 
 impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
   type Message = Message;
@@ -106,7 +105,11 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
             selected.clone(),
           );
 
-          self.info = result.err().map(|it| (true, it.to_string()))
+          self.info = result.as_ref().ok().map(|_| (false, String::from("Link Successful")));
+
+          if let None = self.info {
+            self.info = result.as_ref().err().map(|it| (true, it.to_string()))
+          }
         }
       }
       Message::Open => {
@@ -223,8 +226,8 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       )
       .push::<Element<Message>>(
         match &self.info {
-          Some((false, _)) => {
-            Text::new("Link Successful")
+          Some((false, msg)) => {
+            Text::new(msg)
               .size(IMPORTANT_SIZE)
               .color(Color::new(0.0, 0.75, 0.0, 1.0))
               .into()
