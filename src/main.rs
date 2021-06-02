@@ -14,7 +14,10 @@ mod modpack;
 
 const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
+const ERR_COLOR: Color = Color { r: 0.8, g: 0.0, b: 0.0, a: 1.0 };
+const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
 const IMPORTANT_SIZE: u16 = 28;
+const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 
 // #[macro_export]
 // macro_rules! make_multi_mut_ref {
@@ -30,7 +33,7 @@ fn main() -> iced::Result {
   <CurseForgeToMultiMC as Sandbox>::run(Settings {
     window: window::Settings {
       size: (900, 640),
-      min_size: Some((900, 480)),
+      min_size: Some((900, 540)),
       ..Default::default()
     },
     ..Default::default()
@@ -50,7 +53,7 @@ pub struct CurseForgeToMultiMC<'a> {
   open_btn_state: button::State,
   github_btn_state: button::State,
   selected_cf_mp: Option<CFModPack>,
-  info: Option<(bool, String)>,
+  info: Option<(Color, String)>,
   _data: PhantomData<&'a ()>, // Just in case I need it later
 }
 
@@ -105,10 +108,10 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
             selected.clone(),
           );
 
-          self.info = result.as_ref().ok().map(|_| (false, String::from("Link Successful")));
+          self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Link Successful")));
 
           if let None = self.info {
-            self.info = result.as_ref().err().map(|it| (true, it.to_string()))
+            self.info = result.as_ref().err().map(|it| (ERR_COLOR, it.to_string()))
           }
         }
       }
@@ -117,14 +120,14 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
           if let Some(dir) = &selected.dir {
             let result = open::that(dir);
 
-            self.info = result.err().map(|it| (true, it.to_string()))
+            self.info = result.err().map(|it| (ERR_COLOR, it.to_string()))
           }
         }
       }
       Message::OpenGithub => {
         let result = open::that(GITHUB_URL);
 
-        self.info = result.err().map(|it| (true, it.to_string()))
+        self.info = result.err().map(|it| (ERR_COLOR, it.to_string()))
       }
     }
   }
@@ -171,27 +174,28 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
         ).width(Length::Fill)
       )
       .push(Space::with_height(Length::Fill))
-      .push(Text::new("This is a simple utility to help link CurseForge modpacks to MultiMC profiles").size(IMPORTANT_SIZE))
+      .push(Text::new("This is a simple utility to help link CurseForge instances to MultiMC instances").size(IMPORTANT_SIZE))
+      .push(Space::with_height(Length::Fill))
       .push(
         Text::new("IMPORTANT: ")
           .size(IMPORTANT_SIZE)
-          .color(Color::new(0.75, 0.0, 0.0, 1.0))
+          .color(IMPORTANT_COLOR)
       )
       .push(
         Text::new("Make sure you double check the versions in MultiMC")
           .size(IMPORTANT_SIZE)
-          .color(Color::new(0.75, 0.0, 0.0, 1.0))
+          .color(IMPORTANT_COLOR)
       )
       .push(
         Text::new("If this is a fabric pack, you need to change it from forge to fabric in MultiMC")
           .size(IMPORTANT_SIZE)
-          .color(Color::new(0.75, 0.0, 0.0, 1.0))
+          .color(IMPORTANT_COLOR)
       )
       .push(
         Text::new("This can't detect the icon of the pack, so you need to change that yourself \
          by downloading the image and placing it in your icons folder for MultiMC")
           .size(IMPORTANT_SIZE)
-          .color(Color::new(0.75, 0.0, 0.0, 1.0))
+          .color(IMPORTANT_COLOR)
       )
       .push(Space::new(Length::Fill, Length::Fill))
       .push(
@@ -226,17 +230,10 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       )
       .push::<Element<Message>>(
         match &self.info {
-          Some((false, msg)) => {
-            Text::new(msg)
-              .size(IMPORTANT_SIZE)
-              .color(Color::new(0.0, 0.75, 0.0, 1.0))
-              .into()
-          }
-          Some((true, err)) => {
-            println!("[Link Result Error]: {:?}", err);
+          Some((color, err)) => {
             Text::new(err)
               .size(IMPORTANT_SIZE)
-              .color(Color::new(0.75, 0.0, 0.0, 1.0))
+              .color(*color)
               .into()
           }
           _ => Space::with_height(Length::Units(0)).into(),
