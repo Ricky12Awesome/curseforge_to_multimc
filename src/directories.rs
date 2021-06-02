@@ -45,10 +45,9 @@ pub trait Directory {
       fd = fd.set_location(self.path());
     }
 
-    let dir = fd.show_open_single_dir();
-    let dir = dir.unwrap_or_default().unwrap_or_default();
-
-    self.new_path(dir.as_path().into());
+    if let Ok(Some(dir)) = fd.show_open_single_dir() {
+      self.new_path(dir.as_path().into());
+    }
   }
 }
 
