@@ -1,5 +1,5 @@
 use std::fmt::Formatter;
-use std::fs::{create_dir, File};
+use std::fs::{create_dir, File, remove_dir_all};
 use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
@@ -50,7 +50,7 @@ fn err<'a>(
   mmc: MultiMCDirectory,
   cf: CurseForgeDirectory,
   selected: CFModPack,
-) -> Result {
+) -> Result<()> {
   Err(Box::new(LinkError { msg, mmc, cf, selected }))
 }
 
@@ -60,7 +60,7 @@ impl std::fmt::Display for LinkError {
   }
 }
 
-pub type Result = std::result::Result<(), Box<dyn std::error::Error>>;
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn create_mmc_instance_cfg(manifest: &CFModPackManifest) -> String {
   let mut str = String::new();
@@ -112,19 +112,38 @@ fn create_mmc_pack_json(manifest: &CFModPackManifest) -> serde_json::Value {
   )
 }
 
+fn manifest(selected: &CFModPack) -> Result<CFModPackManifest> {
+  let path = selected.path().join("manifest.json");
+  let file = File::open(path)?;
+  let bytes = file
+    .bytes()
+    .map(|it| it.unwrap_or_default())
+    .collect::<Vec<_>>();
+
+  Ok(serde_json::from_slice::<CFModPackManifest>(&bytes)?)
+}
+
+pub fn unlink(
+  mmc: MultiMCDirectory,
+  selected: CFModPack,
+) -> Result<()> {
+  let manifest = manifest(&selected)?;
+  let mmc_path = mmc.path.join(&manifest.name);
+
+  remove_dir_all(mmc_path)?;
+
+  Ok(())
+}
+
 pub fn link(
   mmc: MultiMCDirectory,
   cf: CurseForgeDirectory,
   selected: CFModPack,
-) -> Result {
-  let file = selected.path().join("manifest.json");
-  let file = File::open(file)?;
-  let bytes = file.bytes();
-  let bytes = bytes.map(|it| it.unwrap_or_default()).collect::<Vec<_>>();
-  let json = serde_json::from_slice::<CFModPackManifest>(&bytes)?;
-  let mmc_pack = serde_json::to_string_pretty(&create_mmc_pack_json(&json))?;
-  let mmc_cfg = create_mmc_instance_cfg(&json);
-  let mmc_path = mmc.path().join(&json.name);
+) -> Result<()> {
+  let manifest = manifest(&selected)?;
+  let mmc_pack = serde_json::to_string_pretty(&create_mmc_pack_json(&manifest))?;
+  let mmc_cfg = create_mmc_instance_cfg(&manifest);
+  let mmc_path = mmc.path().join(&manifest.name);
 
   if mmc_path.exists() {
     return err("A folder with that name already exists", mmc, cf, selected);
@@ -138,7 +157,11 @@ pub fn link(
   mmc_cfg_file.write(mmc_cfg.as_bytes())?;
   mmc_pack_file.write(mmc_pack.as_bytes())?;
 
-  symlink::symlink_dir(selected.path(), mmc_path.join("minecraft"))?;
-
-  Ok(())
+  match symlink::symlink_dir(selected.path(), mmc_path.join("minecraft")) {
+    Ok(_) => Ok(()),
+    Err(_) => {
+      remove_dir_all(&mmc_path)?;
+      err("No permission to create symlink (Needs admin perms)", mmc, cf, selected)
+    }
+  }
 }

@@ -50,6 +50,7 @@ pub struct CurseForgeToMultiMC<'a> {
   cf_browse_state: button::State,
   pick_cf_mp: pick_list::State<CFModPack>,
   link_btn_state: button::State,
+  unlink_btn_state: button::State,
   open_btn_state: button::State,
   github_btn_state: button::State,
   selected_cf_mp: Option<CFModPack>,
@@ -65,6 +66,7 @@ pub enum Message {
   CFBrowse,
   CFMPPicked(CFModPack),
   Link,
+  Unlink,
   Open,
   OpenGithub,
 }
@@ -108,7 +110,21 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
             selected.clone(),
           );
 
-          self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Link Successful")));
+          self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Linked")));
+
+          if let None = self.info {
+            self.info = result.as_ref().err().map(|it| (ERR_COLOR, it.to_string()))
+          }
+        }
+      }
+      Message::Unlink => {
+        if let Some(selected) = &self.selected_cf_mp {
+          let result = crate::link::unlink(
+            self.mmc_d.clone(),
+            selected.clone(),
+          );
+
+          self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Unlinked")));
 
           if let None = self.info {
             self.info = result.as_ref().err().map(|it| (ERR_COLOR, it.to_string()))
@@ -213,6 +229,18 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
           None => Button::new(
             &mut self.link_btn_state,
             Text::new("Link (None)"),
+          )
+        }
+      )
+      .push(
+        match &self.selected_cf_mp {
+          Some(mp) => Button::new(
+            &mut self.unlink_btn_state,
+            Text::new(format!("Unlink ({})", mp)),
+          ).on_press(Message::Unlink),
+          None => Button::new(
+            &mut self.unlink_btn_state,
+            Text::new("Unlink (None)"),
           )
         }
       )
