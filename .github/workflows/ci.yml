@@ -47,7 +47,6 @@ jobs:
           args: --release --target ${{ matrix.job.target }}
 
       - name: Publish Binary
-        if: runners.os = 'Windows'
         uses: softprops/action-gh-release@v1
         with:
           files: |
