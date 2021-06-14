@@ -7,6 +7,7 @@ use iced::*;
 
 use crate::modpack::CFModPack;
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use iced::window::Icon;
 
 mod directories;
 mod link;
@@ -29,9 +30,29 @@ const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 //   ($v:expr, $c:ty) => { unsafe { &*($v as *const $c) } };
 // }
 
-fn main() -> iced::Result {
+fn gen_icon() -> std::result::Result<Icon, Box<dyn std::error::Error + Send + Sync>> {
+  let source = include_bytes!("../assets/icon.ico");
+  let image = ::image::load_from_memory(source)?;
+  let image = image.to_rgba8();
+  let bytes = image.pixels()
+    .map(|it| it.0.iter())
+    .flatten()
+    .map(|it| *it)
+    .collect::<Vec<_>>();
+
+  let icon = Icon::from_rgba(bytes, 256, 256)?;
+
+  Ok(icon)
+}
+
+fn icon() -> std::result::Result<Icon, Error> {
+  gen_icon().map_err(|it| iced::Error::WindowCreationFailed(it))
+}
+
+fn main() -> Result {
   <CurseForgeToMultiMC as Sandbox>::run(Settings {
     window: window::Settings {
+      icon: Some(icon()?),
       size: (975, 650),
       min_size: Some((975, 600)),
       ..Default::default()
