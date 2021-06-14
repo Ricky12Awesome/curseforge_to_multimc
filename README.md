@@ -9,6 +9,8 @@ How it will work
 It will use symbolic links to link CurseForge directory to MultiMC directory
 for the selected instance
 
+https://user-images.githubusercontent.com/29931568/121932338-64d54e80-cd0a-11eb-8ff8-187f52526fde.mp4
+
 Install
 -------
 WIP, right now you need to build it your self
