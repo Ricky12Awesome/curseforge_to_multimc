@@ -45,3 +45,13 @@ jobs:
           use-cross: ${{ matrix.job.use-cross }}
           toolchain: ${{ matrix.rust }}
           args: --release --target ${{ matrix.job.target }}
+
+      - name: Publish Binary
+        if: runners.os = 'Windows'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/${{ matrix.job.target }}/release/{{project-name}}-*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
