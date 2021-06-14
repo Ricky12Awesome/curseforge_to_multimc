@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  publish:
     name: Publishing for {{ "${{ matrix.job.os " }}}}
-    runs-on: {{ "${{ matrix.job.os " }}}}
+    runs-on: ${{ matrix.job.os }}
 
     strategy:
       # Setup to support macos/linux in the feature
