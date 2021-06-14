@@ -11,7 +11,7 @@ on:
 
 jobs:
   publish:
-    name: Publishing for {{ "${{ matrix.job.os " }}}}
+    name: Publishing for ${{ matrix.job.os }}
     runs-on: ${{ matrix.job.os }}
 
     strategy:
