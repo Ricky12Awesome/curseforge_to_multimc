@@ -2,12 +2,7 @@
 
 name: CI
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+on: [push, release, workflow_dispatch]
 
 jobs:
   publish:
@@ -47,6 +42,7 @@ jobs:
           args: --release --target ${{ matrix.job.target }}
 
       - name: Publish Binary
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |
