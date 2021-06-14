@@ -1,13 +1,20 @@
 # Learning to use github actions
 
-name: CI
+name: Tagged Release
 
-on: [push, release, workflow_dispatch]
+on:
+  push:
+    tags:
+      - "v*"
 
 jobs:
   publish:
     name: Publishing for ${{ matrix.job.os }}
     runs-on: ${{ matrix.job.os }}
+
+    env:
+      # too much effort to read it from cargo.toml, and idk how to do it via action-rs
+      PROJECT_NAME: curseforge_to_multimc
 
     strategy:
       # Setup to support macos/linux in the feature
@@ -22,7 +29,7 @@ jobs:
             use-cross: false
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v2
 
       - name: Install Rust
@@ -43,10 +50,11 @@ jobs:
 
       - name: Publish Binary
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: marvinpinto/action-automatic-releases@latest
         with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
+          id: automatic_release
           files: |
-            target/${{ matrix.job.target }}/release/{{project-name}}-*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}.exe
 
