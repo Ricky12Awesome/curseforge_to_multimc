@@ -16,7 +16,7 @@ const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
 const ERR_COLOR: Color = Color { r: 0.8, g: 0.0, b: 0.0, a: 1.0 };
 const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
-const IMPORTANT_SIZE: u16 = 28;
+const IMPORTANT_SIZE: u16 = 24;
 const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 
 // #[macro_export]
@@ -32,8 +32,8 @@ const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 fn main() -> iced::Result {
   <CurseForgeToMultiMC as Sandbox>::run(Settings {
     window: window::Settings {
-      size: (900, 640),
-      min_size: Some((900, 540)),
+      size: (975, 650),
+      min_size: Some((975, 600)),
       ..Default::default()
     },
     ..Default::default()
@@ -192,24 +192,39 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
       .push(Space::with_height(Length::Fill))
       .push(Text::new("This is a simple utility to help link CurseForge instances to MultiMC instances").size(IMPORTANT_SIZE))
       .push(Space::with_height(Length::Fill))
+      // .push(
+      //   Text::new("IMPORTANT: ")
+      //     .size(IMPORTANT_SIZE)
+      //     .color(IMPORTANT_COLOR)
+      // )
+      // .push(
+      //   Text::new("Make sure you double check the versions in MultiMC")
+      //     .size(IMPORTANT_SIZE)
+      //     .color(IMPORTANT_COLOR)
+      // )
       .push(
-        Text::new("IMPORTANT: ")
+        Text::new("Icons can't be detected, there's no way to get them from the manifest")
           .size(IMPORTANT_SIZE)
           .color(IMPORTANT_COLOR)
       )
       .push(
-        Text::new("Make sure you double check the versions in MultiMC")
+        Text::new("Fabric detection only works for modpacks that support it ")
+          .size(IMPORTANT_SIZE)
+          .color(IMPORTANT_COLOR)
+      )
+      .push(Space::with_height(Length::Fill))
+      .push(
+        Text::new("Example: ")
           .size(IMPORTANT_SIZE)
           .color(IMPORTANT_COLOR)
       )
       .push(
-        Text::new("If this is a fabric pack, you need to change it from forge to fabric in MultiMC")
+        Text::new("\"All Of Fabric 3\" doesn't get detected as fabric cause CurseForge still thinks it's a forge modpack")
           .size(IMPORTANT_SIZE)
           .color(IMPORTANT_COLOR)
       )
       .push(
-        Text::new("This can't detect the icon of the pack, so you need to change that yourself \
-         by downloading the image and placing it in your icons folder for MultiMC")
+        Text::new("\"All Of Fabric 4\" does get detected as a fabric modpack")
           .size(IMPORTANT_SIZE)
           .color(IMPORTANT_COLOR)
       )
