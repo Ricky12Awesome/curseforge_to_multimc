@@ -8,17 +8,16 @@ use crate::modpack::CFModPack;
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CFModPackManifest {
-  minecraft: CFMinecraftJson,
+struct CFMinecraftInstance {
   name: String,
-  version: String,
-  author: String,
+  #[serde(alias = "baseModLoader")] loader: CFBaseModLoader
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CFMinecraftJson {
-  version: String,
-  #[serde(alias = "modLoaders")] mod_loaders: Vec<CFModLoadersJson>,
+struct CFBaseModLoader {
+  name: String,
+  #[serde(alias = "forgeVersion")] version: String,
+  #[serde(alias = "minecraftVersion")] mc_version: String,
 }
 
 enum CFMinecraftLoaderVersion {
@@ -27,11 +26,11 @@ enum CFMinecraftLoaderVersion {
   Unknown,
 }
 
-impl CFMinecraftJson {
+impl CFBaseModLoader {
   fn version(&self) -> CFMinecraftLoaderVersion {
-    match self.mod_loaders[0].id.split_once("-") {
-      Some(("forge", version)) => CFMinecraftLoaderVersion::Forge(version.to_string()),
-      Some(("fabric", version)) => CFMinecraftLoaderVersion::Fabric(version.to_string()),
+    match self.name.split_once("-") {
+      Some(("forge", _)) => CFMinecraftLoaderVersion::Forge(self.version.clone()),
+      Some(("fabric", _)) => CFMinecraftLoaderVersion::Fabric(self.version.clone()),
       _ => CFMinecraftLoaderVersion::Unknown
     }
   }
@@ -41,9 +40,6 @@ impl CFMinecraftJson {
 struct CFModLoadersJson {
   id: String,
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-struct MMCModPackManifest {}
 
 #[derive(Debug)]
 pub struct LinkError {
@@ -72,7 +68,7 @@ impl std::fmt::Display for LinkError {
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn create_mmc_instance_cfg(manifest: &CFModPackManifest) -> String {
+fn create_mmc_instance_cfg(instance: &CFMinecraftInstance) -> String {
   let mut str = String::new();
 
   str.push_str("InstanceType=OneSix\n");
@@ -86,26 +82,26 @@ fn create_mmc_instance_cfg(manifest: &CFModPackManifest) -> String {
   str.push_str("OverrideNativeWorkarounds=false\n");
   str.push_str("OverrideWindow=false\n");
   str.push_str("iconKey=default\n");
-  str.push_str(format!("name={}\n", manifest.name).as_str());
+  str.push_str(format!("name={}\n", instance.name).as_str());
   str.push_str("notes=\n");
 
   str
 }
 
-fn create_mmc_pack_json(manifest: &CFModPackManifest) -> serde_json::Value {
-  let minecraft_component = |manifest: &CFModPackManifest| {
+fn create_mmc_pack_json(instance: &CFMinecraftInstance) -> serde_json::Value {
+  let minecraft_component = |instance: &CFMinecraftInstance| {
     serde_json::json!({
       "cachedName": "Minecraft",
       "cachedRequires": [],
-      "cachedVersion": manifest.minecraft.version,
+      "cachedVersion": instance.loader.mc_version,
       "important": true,
       "uid": "net.minecraft",
-      "version": manifest.minecraft.version
+      "version": instance.loader.mc_version
     })
   };
 
-  let version_component = |manifest: &CFModPackManifest| {
-    match manifest.minecraft.version() {
+  let version_component = |instance: &CFMinecraftInstance| {
+    match instance.loader.version() {
       CFMinecraftLoaderVersion::Fabric(version) => serde_json::json!({
         "cachedName": "Fabric Loader",
         "uid": "net.fabricmc.fabric-loader",
@@ -123,31 +119,31 @@ fn create_mmc_pack_json(manifest: &CFModPackManifest) -> serde_json::Value {
   serde_json::json!(
     {
       "components": [
-        minecraft_component(manifest),
-        version_component(manifest)
+        minecraft_component(instance),
+        version_component(instance)
       ],
       "formatVersion": 1
     }
   )
 }
 
-fn manifest(selected: &CFModPack) -> Result<CFModPackManifest> {
-  let path = selected.path().join("manifest.json");
+fn get_cf_instance(selected: &CFModPack) -> Result<CFMinecraftInstance> {
+  let path = selected.path().join("minecraftinstance.json");
   let file = File::open(path)?;
   let bytes = file
     .bytes()
     .map(|it| it.unwrap_or_default())
     .collect::<Vec<_>>();
 
-  Ok(serde_json::from_slice::<CFModPackManifest>(&bytes)?)
+  Ok(serde_json::from_slice::<CFMinecraftInstance>(&bytes)?)
 }
 
 pub fn unlink(
   mmc: MultiMCDirectory,
   selected: CFModPack,
 ) -> Result<()> {
-  let manifest = manifest(&selected)?;
-  let mmc_path = mmc.path.join(&manifest.name);
+  let instance = get_cf_instance(&selected)?;
+  let mmc_path = mmc.path.join(&instance.name);
 
   remove_dir_all(mmc_path)?;
 
@@ -159,10 +155,10 @@ pub fn link(
   cf: CurseForgeDirectory,
   selected: CFModPack,
 ) -> Result<()> {
-  let manifest = manifest(&selected)?;
-  let mmc_pack = serde_json::to_string_pretty(&create_mmc_pack_json(&manifest))?;
-  let mmc_cfg = create_mmc_instance_cfg(&manifest);
-  let mmc_path = mmc.path().join(&manifest.name);
+  let instance = get_cf_instance(&selected)?;
+  let mmc_pack = serde_json::to_string_pretty(&create_mmc_pack_json(&instance))?;
+  let mmc_cfg = create_mmc_instance_cfg(&instance);
+  let mmc_path = mmc.path().join(&instance.name);
 
   if mmc_path.exists() {
     return err("A folder with that name already exists", mmc, cf, selected);
