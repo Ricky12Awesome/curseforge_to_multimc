@@ -21,9 +21,19 @@ struct CFMinecraftJson {
   #[serde(alias = "modLoaders")] mod_loaders: Vec<CFModLoadersJson>,
 }
 
+enum CFMinecraftLoaderVersion {
+  Forge(String),
+  Fabric(String),
+  Unknown,
+}
+
 impl CFMinecraftJson {
-  fn forge_version(&self) -> String {
-    self.mod_loaders[0].id.split_at("forge-".len()).1.to_string()
+  fn version(&self) -> CFMinecraftLoaderVersion {
+    match self.mod_loaders[0].id.split_once("-") {
+      Some(("forge", version)) => CFMinecraftLoaderVersion::Forge(version.to_string()),
+      Some(("fabric", version)) => CFMinecraftLoaderVersion::Fabric(version.to_string()),
+      _ => CFMinecraftLoaderVersion::Unknown
+    }
   }
 }
 
@@ -83,29 +93,38 @@ fn create_mmc_instance_cfg(manifest: &CFModPackManifest) -> String {
 }
 
 fn create_mmc_pack_json(manifest: &CFModPackManifest) -> serde_json::Value {
+  let minecraft_component = |manifest: &CFModPackManifest| {
+    serde_json::json!({
+      "cachedName": "Minecraft",
+      "cachedRequires": [],
+      "cachedVersion": manifest.minecraft.version,
+      "important": true,
+      "uid": "net.minecraft",
+      "version": manifest.minecraft.version
+    })
+  };
+
+  let version_component = |manifest: &CFModPackManifest| {
+    match manifest.minecraft.version() {
+      CFMinecraftLoaderVersion::Fabric(version) => serde_json::json!({
+        "cachedName": "Fabric Loader",
+        "uid": "net.fabricmc.fabric-loader",
+        "version": version
+      }),
+      CFMinecraftLoaderVersion::Forge(version) => serde_json::json!({
+        "cachedName": "Forge",
+        "uid": "net.minecraftforge",
+        "version": version
+      }),
+      _ => serde_json::json!({})
+    }
+  };
+
   serde_json::json!(
     {
       "components": [
-        {
-          "cachedName": "Minecraft",
-          "cachedRequires": [],
-          "cachedVersion": manifest.minecraft.version,
-          "important": true,
-          "uid": "net.minecraft",
-          "version": manifest.minecraft.version
-        },
-        {
-          "cachedName": "Forge",
-          "cachedRequires": [
-            {
-              "equals": manifest.minecraft.version,
-              "uid": "net.minecraft"
-            }
-          ],
-          "cachedVersion": manifest.minecraft.forge_version(),
-          "uid": "net.minecraftforge",
-          "version": manifest.minecraft.forge_version()
-        }
+        minecraft_component(manifest),
+        version_component(manifest)
       ],
       "formatVersion": 1
     }
