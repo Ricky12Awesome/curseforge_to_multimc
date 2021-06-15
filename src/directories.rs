@@ -63,21 +63,13 @@ impl Default for MultiMCDirectory {
 }
 
 impl Default for CurseForgeDirectory {
-  #[cfg(windows)]
   fn default() -> Self {
-    let user = std::env::var("USERNAME").unwrap_or_default();
-    let path = format!(r"C:\Users\{}\curseforge\minecraft\Instances", user);
-
-    Self { path: Path::new(&path).into() }
-  }
-
-  // FIXME: I don't know the MacOS CurseForge default, I ask them and they didn't want to give it to me
-  // not windows to support MacOS and Linux, even though CurseForge isn't for Linux yet,
-  // though you could use wine for it maybe
-  #[cfg(not(windows))]
-  fn default() -> Self {
-    let user = std::env::var("HOME").unwrap_or_default();
-    let path = format!(r"/Users/{}/curseforge/minecraft/Instances", user);
+    #[cfg(windows)] let user = std::env::var("USERNAME").unwrap_or_default();
+    #[cfg(not(windows))] let user = std::env::var("HOME").unwrap_or_default();
+    #[cfg(windows)] let path = format!(r"C:\Users\{}\curseforge\minecraft\Instances", user);
+    #[cfg(target_os = "macos")] let path = format!(r"{}/Documents/curseforge/minecraft/Instances", user);
+    // FIXME: This is be updated once CurseForge linux
+    #[cfg(target_os = "linux")] let path = format!(r"{}/curseforge/minecraft/Instances", user);
 
     Self { path: Path::new(&path).into() }
   }
