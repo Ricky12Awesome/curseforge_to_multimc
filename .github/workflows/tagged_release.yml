@@ -80,7 +80,7 @@ jobs:
           profile: minimal
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+#      - uses: Swatinem/rust-cache@v1 # to see if this caused the renaming issue, if so, I can make a fix for it
 
       - uses: actions-rs/cargo@v1
         with:
@@ -107,19 +107,19 @@ jobs:
           path: ${{ env.FILE_PATH }}
           retention-days: 1
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: artifact
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-
-      - name: Release Artifacts
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
-          files: |
-            */*
+#  release:
+#    name: Release
+#    runs-on: ubuntu-latest
+#    needs: artifact
+#    steps:
+#      - name: Download Artifacts
+#        uses: actions/download-artifact@v2
+#
+#      - name: Release Artifacts
+#        uses: marvinpinto/action-automatic-releases@latest
+#        with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          prerelease: false
+#          files: |
+#            */*
 
