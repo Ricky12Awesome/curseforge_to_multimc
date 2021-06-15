@@ -53,17 +53,14 @@ jobs:
 #            binary-postfix: ""
 #            use-cross: true
 
-    env:
-      BASE_FILE_NAME: ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}
-      ATRIFACT_NAME: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
-
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Enviroment Variables
         run: |
+          echo "BASE_FILE_NAME=${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}" >> $GITHUB_ENV
+          echo "ATRIFACT_NAME=${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}" >> $GITHUB_ENV
           echo "FILE_NAME=${{ env.ATRIFACT_NAME }}${{ matrix.job.binary-postfix }}" >> $GITHUB_ENV
           echo "FILE_PATH=target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}" >> $GITHUB_ENV
 
@@ -100,6 +97,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    needs: artifact
     steps:
       - name: Download Atrifacts
         uses: actions/download-artifact@v2
@@ -110,7 +108,7 @@ jobs:
           ls .
           ls */.
 
-#      - name: Release Atrifacts
+#      - name: Release Artifacts
 #        uses: marvinpinto/action-automatic-releases@latest
 #        with:
 #          repo_token: ${{ secrets.GITHUB_TOKEN }}
