@@ -94,7 +94,10 @@ jobs:
         run: |
           cd target/${{ matrix.job.target }}/release/
 
-          mv -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
+          # Doesn't work, idky, cp -f also doesn't work
+          # mv -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
+
+          cat ${{ env.BASE_FILE_NAME }} >> ${{ env.FILE_NAME }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
