@@ -76,7 +76,7 @@ jobs:
         run: |
           cd target/${{ matrix.job.target }}/release/
 
-          mv ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}\
+          mv ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }} \
           ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}${{ matrix.job.binary-postfix }}
 
       - name: Publish Binary
