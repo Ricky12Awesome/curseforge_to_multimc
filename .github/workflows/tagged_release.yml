@@ -94,7 +94,7 @@ jobs:
         run: |
           cd target/${{ matrix.job.target }}/release/
 
-          mv ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
+          cp -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
