@@ -62,13 +62,14 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - uses: actions-rs/cargo@v1
-        run: |
-          ls -al .
-          ls -al target/${{ matrix.job.target }}/release/
         with:
           command: build
           use-cross: ${{ matrix.job.use-cross }}
           toolchain: ${{ matrix.rust }}
           args: --release --target ${{ matrix.job.target }}
+
+      - run: |
+          ls -al .
+          ls -al target/${{ matrix.job.target }}/release/
 
 
