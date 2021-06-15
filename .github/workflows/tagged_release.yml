@@ -12,7 +12,7 @@ env:
   PROJECT_NAME: curseforge_to_multimc
 
 jobs:
-  atrifact:
+  artifact:
     name: Atifact for ${{ matrix.job.os-name }}
     runs-on: ${{ matrix.job.os }}
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: artifact
     steps:
-      - name: Download Atrifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v2
 
       - name: List Atrifacts (this is for testing to know how it's layedout
