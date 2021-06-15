@@ -7,15 +7,20 @@ on:
 
   workflow_dispatch:
 
+env:
+  # too much effort to read it from cargo.toml, and idk how to do it via action-rs
+  PROJECT_NAME: curseforge_to_multimc
 
 jobs:
-  publish:
-    name: Publishing for ${{ matrix.job.os-name }}
+  atrifact:
+    name: Atifact for ${{ matrix.job.os-name }}
     runs-on: ${{ matrix.job.os }}
 
     env:
-      # too much effort to read it from cargo.toml, and idk how to do it via action-rs
-      PROJECT_NAME: curseforge_to_multimc
+      BASE_FILE_NAME: ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}
+      ATRIFACT_NAME: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
+      FILE_NAME: ${{ env.ATRIFACT_NAME }}${{ matrix.job.binary-postfix }}
+      FILE_PATH: target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}
 
     strategy:
       matrix:
@@ -79,21 +84,33 @@ jobs:
         run: |
           cd target/${{ matrix.job.target }}/release/
 
-          mv ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }} \
-          ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}${{ matrix.job.binary-postfix }}
+          mv ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
-          path: target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}${{ matrix.job.binary-postfix }}
+          name: ${{ env.ATRIFACT_NAME }}
+          path: ${{ env.FILE_PATH }}
           retention-days: 1
 
-#      - name: Publish Binary
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Atrifacts
+        uses: actions/download-artifact@v2
+
+      - name: List Atrifacts (this is for testing to know how it's layedout
+        shell: bash
+        run: |
+          ls .
+          ls */.
+
+#      - name: Release Atrifacts
 #        uses: marvinpinto/action-automatic-releases@latest
 #        with:
 #          repo_token: ${{ secrets.GITHUB_TOKEN }}
 #          prerelease: false
 #          files: |
-#            target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}${{ matrix.job.binary-postfix }}
+#            *
 
