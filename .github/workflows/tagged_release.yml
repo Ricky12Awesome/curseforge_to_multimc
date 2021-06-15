@@ -16,12 +16,6 @@ jobs:
     name: Atifact for ${{ matrix.job.os-name }}
     runs-on: ${{ matrix.job.os }}
 
-    env:
-      BASE_FILE_NAME: ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}
-      ATRIFACT_NAME: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
-      FILE_NAME: ${{ env.ATRIFACT_NAME }}${{ matrix.job.binary-postfix }}
-      FILE_PATH: target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}
-
     strategy:
       matrix:
         rust: [ stable ]
@@ -59,9 +53,19 @@ jobs:
 #            binary-postfix: ""
 #            use-cross: true
 
+    env:
+      BASE_FILE_NAME: ${{ env.PROJECT_NAME }}${{ matrix.job.binary-postfix }}
+      ATRIFACT_NAME: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
+
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Setup Enviroment Variables
+        run: |
+          echo "FILE_NAME=${{ env.ATRIFACT_NAME }}${{ matrix.job.binary-postfix }}" >> $GITHUB_ENV
+          echo "FILE_PATH=target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
