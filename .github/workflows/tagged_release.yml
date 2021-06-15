@@ -111,17 +111,11 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
-      - name: List Atrifacts (this is for testing to know how it's layedout
-        shell: bash
-        run: |
-          ls .
-          ls */.
-
-#      - name: Release Artifacts
-#        uses: marvinpinto/action-automatic-releases@latest
-#        with:
-#          repo_token: ${{ secrets.GITHUB_TOKEN }}
-#          prerelease: false
-#          files: |
-#            *
+      - name: Release Artifacts
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
+          files: |
+            */*
 
