@@ -68,8 +68,4 @@ jobs:
           toolchain: ${{ matrix.rust }}
           args: --release --target ${{ matrix.job.target }}
 
-      - run: |
-          ls -al .
-          ls -al target/${{ matrix.job.target }}/release/
-
 
