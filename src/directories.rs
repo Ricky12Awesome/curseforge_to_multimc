@@ -54,9 +54,9 @@ pub trait Directory {
 directory!(MultiMCDirectory, CurseForgeDirectory);
 
 impl Default for MultiMCDirectory {
-  #[cfg(windows)]
   fn default() -> Self {
-    let path = String::from(r"C:\Tools\MultiMC\instances");
+    #[cfg(windows)] let path = String::from(r"C:\Tools\MultiMC\instances");
+    #[cfg(not(windows))] let path = String::from(r"/Tools/MultiMC/instances");
 
     Self { path: Path::new(&path).into() }
   }
@@ -67,6 +67,17 @@ impl Default for CurseForgeDirectory {
   fn default() -> Self {
     let user = std::env::var("USERNAME").unwrap_or_default();
     let path = format!(r"C:\Users\{}\curseforge\minecraft\Instances", user);
+
+    Self { path: Path::new(&path).into() }
+  }
+
+  // FIXME: I don't know the MacOS CurseForge default, I ask them and they didn't want to give it to me
+  // not windows to support MacOS and Linux, even though CurseForge isn't for Linux yet,
+  // though you could use wine for it maybe
+  #[cfg(not(windows))]
+  fn default() -> Self {
+    let user = std::env::var("HOME").unwrap_or_default();
+    let path = format!(r"/Users/{}/curseforge/minecraft/Instances", user);
 
     Self { path: Path::new(&path).into() }
   }
