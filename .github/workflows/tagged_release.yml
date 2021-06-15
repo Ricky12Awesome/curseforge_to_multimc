@@ -76,7 +76,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
-          id: automatic_release
           files: |
             target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}.exe
 
