@@ -94,6 +94,7 @@ jobs:
         run: |
           cd target/${{ matrix.job.target }}/release/
 
+          ls -al .
           # Doesn't work, idky, cp -f also doesn't work
           # mv -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
 
