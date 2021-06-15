@@ -85,7 +85,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.PROJECT_NAME }-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
+          name: ${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
           path: target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}${{ matrix.job.binary-postfix }}
           retention-days: 1
 
