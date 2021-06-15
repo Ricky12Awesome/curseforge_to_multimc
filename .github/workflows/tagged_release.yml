@@ -67,6 +67,10 @@ jobs:
         shell: bash
         run: |
           echo "FILE_NAME=${{ env.ATRIFACT_NAME }}${{ matrix.job.binary-postfix }}" >> $GITHUB_ENV
+
+      - name: Setup Enviroment Variables
+        shell: bash
+        run: |
           echo "FILE_PATH=target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}" >> $GITHUB_ENV
 
       - name: Install Rust
