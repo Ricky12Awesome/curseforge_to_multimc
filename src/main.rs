@@ -12,6 +12,7 @@ use crate::modpack::CFModPack;
 mod directories;
 mod link;
 mod modpack;
+mod settings;
 
 const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
@@ -51,7 +52,7 @@ fn icon() -> std::result::Result<Icon, Error> {
 }
 
 fn main() -> Result {
-  <CurseForgeToMultiMC as Sandbox>::run(Settings {
+  <CurseForgeToMultiMC as Application>::run(Settings {
     window: window::Settings {
       icon: Some(icon()?),
       size: (975, 650),
@@ -91,22 +92,25 @@ pub enum Message {
   Unlink,
   Open,
   OpenGithub,
+  None
 }
 
 impl<'a> CurseForgeToMultiMC<'a> {}
 
-impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
+impl<'a> Application for CurseForgeToMultiMC<'a> {
+  type Executor = iced::executor::Default;
   type Message = Message;
+  type Flags = ();
 
-  fn new() -> Self {
-    Self::default()
+  fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    (Self::default(), Command::none())
   }
 
   fn title(&self) -> String {
     String::from(TITLE)
   }
 
-  fn update(&mut self, message: Message) {
+  fn update(&mut self, message: Self::Message, _: &mut Clipboard) -> Command<Self::Message> {
     match message {
       Message::MMCDirectoryChange(dir) => {
         self.mmc_d.new_path(Path::new(&dir).into())
@@ -167,7 +171,10 @@ impl<'a> Sandbox for CurseForgeToMultiMC<'a> {
 
         self.info = result.err().map(|it| (ERR_COLOR, it.to_string()))
       }
+      Message::None => {}
     }
+
+    Command::none()
   }
 
   fn view(&mut self) -> Element<Message> {
