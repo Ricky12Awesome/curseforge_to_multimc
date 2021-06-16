@@ -4,10 +4,10 @@ use std::marker::PhantomData;
 use std::path::Path;
 
 use iced::*;
-
-use crate::modpack::CFModPack;
-use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 use iced::window::Icon;
+
+use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::modpack::CFModPack;
 
 mod directories;
 mod link;

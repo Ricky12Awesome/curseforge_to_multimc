@@ -4,13 +4,13 @@ use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
 
-use crate::modpack::CFModPack;
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::modpack::CFModPack;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CFMinecraftInstance {
   name: String,
-  #[serde(alias = "baseModLoader")] loader: CFBaseModLoader
+  #[serde(alias = "baseModLoader")] loader: CFBaseModLoader,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
