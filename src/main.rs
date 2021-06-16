@@ -31,8 +31,9 @@ const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 // }
 
 fn gen_icon() -> std::result::Result<Icon, Box<dyn std::error::Error + Send + Sync>> {
-  let source = include_bytes!("../assets/icon.ico");
-  let image = ::image::load_from_memory(source)?;
+  const SOURCE: &[u8] = include_bytes!("../assets/icon.ico");
+
+  let image = ::image::load_from_memory(SOURCE)?;
   let image = image.to_rgba8();
   let bytes = image.pixels()
     .map(|it| it.0.iter())
