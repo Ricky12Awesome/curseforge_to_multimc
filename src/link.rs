@@ -1,11 +1,11 @@
 use std::fmt::Formatter;
 use std::fs::{create_dir, File, remove_dir_all};
-use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 use crate::modpack::CFModPack;
+use std::io::Write;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CFMinecraftInstance {
@@ -129,13 +129,8 @@ fn create_mmc_pack_json(instance: &CFMinecraftInstance) -> serde_json::Value {
 
 fn get_cf_instance(selected: &CFModPack) -> Result<CFMinecraftInstance> {
   let path = selected.path().join("minecraftinstance.json");
-  let file = File::open(path)?;
-  let bytes = file
-    .bytes()
-    .map(|it| it.unwrap_or_default())
-    .collect::<Vec<_>>();
 
-  Ok(serde_json::from_slice::<CFMinecraftInstance>(&bytes)?)
+  Ok(serde_json::from_reader(&File::open(&path)?)?)
 }
 
 pub fn unlink(

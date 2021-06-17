@@ -1,21 +1,16 @@
 // #![windows_subsystem = "windows"] // Doesn't work for CLI + GUI Applications
 
-use std::fs::{File, OpenOptions};
-use std::marker::PhantomData;
-use std::path::Path;
-
-use clap::Arg;
 use iced::*;
-use iced::window::Icon;
 use iced_native::Event;
-use serde::{Deserialize, Serialize};
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::misc::{ApplicationSettings, Flags, hide_console, icon};
 use crate::modpack::CFModPack;
 
 mod directories;
 mod link;
 mod modpack;
+mod misc;
 
 const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
@@ -24,58 +19,10 @@ const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
 const IMPORTANT_SIZE: u16 = 24;
 const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 
-// #[macro_export]
-// macro_rules! make_multi_mut_ref {
-//   ($v:expr, $c:ty) => { unsafe { &mut *($v as *mut $c) } };
-// }
-//
-// #[macro_export]
-// macro_rules! make_multi_ref {
-//   ($v:expr, $c:ty) => { unsafe { &*($v as *const $c) } };
-// }
-
-type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
-
-fn gen_icon() -> AnyResult<Icon> {
-  const SOURCE: &[u8] = include_bytes!("../assets/icon.ico");
-
-  let image = ::image::load_from_memory(SOURCE)?;
-  let image = image.to_rgba8();
-  let bytes = image.pixels()
-    .map(|it| it.0.iter())
-    .flatten()
-    .map(|it| *it)
-    .collect::<Vec<_>>();
-
-  let icon = Icon::from_rgba(bytes, 256, 256)?;
-
-  Ok(icon)
-}
-
-fn icon() -> std::result::Result<Icon, Error> {
-  gen_icon().map_err(|it| iced::Error::WindowCreationFailed(it))
-}
-
-// Need this to make CLI work, but will still hide console when ran normally (double clicking, start menu, etc)
-#[cfg(windows)]
-fn hide_console() {
-  use std::ptr;
-  use winapi::um::wincon::GetConsoleWindow;
-  use winapi::um::winuser::{ShowWindow, SW_HIDE};
-
-  let window = unsafe { GetConsoleWindow() };
-  // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
-  if window != ptr::null_mut() {
-    unsafe {
-      ShowWindow(window, SW_HIDE);
-    }
-  }
-}
-
 fn main() -> Result {
   let flags = Flags::new();
 
-  #[cfg(windows)] hide_console();
+  hide_console();
 
   <CurseForgeToMultiMC as Application>::run(Settings {
     flags,
@@ -90,70 +37,8 @@ fn main() -> Result {
   })
 }
 
-#[derive(Default, Clone)]
-struct Flags {
-  settings_path: String,
-}
-
-impl Flags {
-  fn new() -> Self {
-    let matches = clap::App::new(TITLE)
-      .version(env!("CARGO_PKG_VERSION"))
-      .author(env!("CARGO_PKG_AUTHORS"))
-      .about("Links CurseForge instances to MultiMC Instances")
-      .arg(
-        Arg::with_name("settings")
-          .long("settings")
-          .value_name("FILE")
-          .help("Sets custom settings file (this will be written to on change)")
-          .takes_value(true)
-          .default_value("settings.json")
-      )
-      .get_matches();
-
-    Self {
-      settings_path: matches.value_of("settings").unwrap_or("settings.json").to_string()
-    }
-  }
-
-  fn load_settings(&self) -> ApplicationSettings {
-    ApplicationSettings::load_from(&self.settings_path)
-  }
-
-  fn save_settings(&self, settings: &ApplicationSettings) -> AnyResult<()> {
-    settings.save_to(&self.settings_path)
-  }
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-struct ApplicationSettings {
-  mmc_directory: Option<String>,
-  cf_directory: Option<String>,
-}
-
-impl ApplicationSettings {
-  fn load_from<P: AsRef<Path>>(path: P) -> Self {
-    match File::open(path) {
-      Ok(file) => serde_json::from_reader(&file).unwrap_or_default(),
-      Err(_) => Self::default()
-    }
-  }
-
-  fn save_to<P: AsRef<Path>>(&self, path: P) -> AnyResult<()> {
-    if path.as_ref().exists() {
-      let file = &OpenOptions::new().write(true).open(path)?;
-
-      serde_json::to_writer_pretty(file, self)?;
-    } else {
-      serde_json::to_writer_pretty(&File::create(path)?, self)?;
-    }
-
-    Ok(())
-  }
-}
-
 #[derive(Default)]
-struct CurseForgeToMultiMC<'a> {
+struct CurseForgeToMultiMC {
   mmc_d: MultiMCDirectory,
   cf_d: CurseForgeDirectory,
   mmc_ti_d_state: text_input::State,
@@ -170,7 +55,6 @@ struct CurseForgeToMultiMC<'a> {
   flags: Flags,
   settings: ApplicationSettings,
   should_exit: bool,
-  _data: PhantomData<&'a ()>, // Just in case I need it later
 }
 
 #[derive(Debug, Clone)]
@@ -187,9 +71,7 @@ enum Message {
   Save,
 }
 
-impl<'a> CurseForgeToMultiMC<'a> {}
-
-impl<'a> Application for CurseForgeToMultiMC<'a> {
+impl Application for CurseForgeToMultiMC {
   type Executor = iced::executor::Default;
   type Message = Message;
   type Flags = Flags;
@@ -203,7 +85,6 @@ impl<'a> Application for CurseForgeToMultiMC<'a> {
     let cf_d = settings.cf_directory.as_ref()
       .map(CurseForgeDirectory::new)
       .unwrap_or_default();
-
 
     (Self { mmc_d, cf_d, flags, settings, ..Self::default() }, Command::none())
   }
@@ -279,7 +160,6 @@ impl<'a> Application for CurseForgeToMultiMC<'a> {
       }
       Message::Save => {
         self.flags.save_settings(&self.settings).unwrap();
-
         self.should_exit = true;
       }
     }
@@ -290,11 +170,7 @@ impl<'a> Application for CurseForgeToMultiMC<'a> {
   fn subscription(&self) -> Subscription<Message> {
     iced_native::subscription::events_with(|event, _| {
       match event {
-        Event::Window(iced_native::window::Event::CloseRequested) => {
-          println!("Yes");
-
-          Some(Message::Save)
-        }
+        Event::Window(iced_native::window::Event::CloseRequested) => Some(Message::Save),
         _ => None
       }
     })

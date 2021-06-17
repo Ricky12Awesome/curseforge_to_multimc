@@ -35,14 +35,6 @@ pub trait Directory {
     self.path().to_str().unwrap_or_default().to_string()
   }
 
-  fn name_if_exists(&self) -> String {
-    if self.exists() {
-      self.to_string()
-    } else {
-      String::from("")
-    }
-  }
-
   fn browse(&mut self) {
     let mut fd = native_dialog::FileDialog::default();
 
@@ -73,7 +65,7 @@ impl Default for CurseForgeDirectory {
     #[cfg(not(windows))] let user = std::env::var("HOME").unwrap_or_default();
     #[cfg(windows)] let path = format!(r"C:\Users\{}\curseforge\minecraft\Instances", user);
     #[cfg(target_os = "macos")] let path = format!(r"{}/Documents/curseforge/minecraft/Instances", user);
-    // FIXME: This is be updated once CurseForge linux
+    // FIXME: This is to be updated once CurseForge supports linux
     #[cfg(target_os = "linux")] let path = format!(r"{}/curseforge/minecraft/Instances", user);
 
     Self { path: Path::new(&path).into() }

@@ -10,7 +10,12 @@ pub struct CFModPack {
 
 impl std::fmt::Display for CFModPack {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    f.write_str(self.dir.clone().unwrap_or_default().file_name().unwrap_or_default().to_str().unwrap_or_default())
+    f.write_str(
+      self.dir
+        .clone().unwrap_or_default()
+        .file_name().unwrap_or_default()
+        .to_str().unwrap_or_default()
+    )
   }
 }
 
