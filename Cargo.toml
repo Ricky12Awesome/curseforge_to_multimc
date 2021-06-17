@@ -1,6 +1,6 @@
 [package]
 name = "curseforge_to_multimc"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Ricky12Awesome <rickygraveen@gmail.com>"]
 edition = "2018"
 

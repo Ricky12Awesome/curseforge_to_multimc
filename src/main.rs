@@ -7,11 +7,11 @@ use std::path::Path;
 use clap::Arg;
 use iced::*;
 use iced::window::Icon;
+use iced_native::Event;
 use serde::{Deserialize, Serialize};
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 use crate::modpack::CFModPack;
-use iced_native::Event;
 
 mod directories;
 mod link;
@@ -165,7 +165,6 @@ struct CurseForgeToMultiMC<'a> {
   unlink_btn_state: button::State,
   open_btn_state: button::State,
   github_btn_state: button::State,
-  save_btn: button::State,
   selected_cf_mp: Option<CFModPack>,
   info: Option<(Color, String)>,
   flags: Flags,
