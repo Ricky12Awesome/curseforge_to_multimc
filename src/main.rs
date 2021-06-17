@@ -20,6 +20,12 @@ const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
 const IMPORTANT_SIZE: u16 = 24;
 const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 
+macro_rules! set_info_if_err {
+  ($info:expr, $value:expr) => {
+    $info = $value.err().map(|it| (ERR_COLOR, it.to_string()))
+  };
+}
+
 fn main() -> Result {
   let flags = Flags::new();
 
@@ -44,8 +50,10 @@ struct CurseForgeToMultiMC {
   cf_d: CurseForgeDirectory,
   mmc_ti_d_state: text_input::State,
   mmc_browse_state: button::State,
+  mmc_open_state: button::State,
   cf_ti_d_state: text_input::State,
   cf_browse_state: button::State,
+  cf_open_state: button::State,
   pick_cf_mp: pick_list::State<CFModPack>,
   link_btn_state: button::State,
   unlink_btn_state: button::State,
@@ -63,7 +71,9 @@ enum Message {
   MMCDirectoryChange(String),
   CFDirectoryChange(String),
   MMCBrowse,
+  MMCOpen,
   CFBrowse,
+  CFOpen,
   CFMPPicked(CFModPack),
   Link,
   Unlink,
@@ -105,12 +115,18 @@ impl Application for CurseForgeToMultiMC {
         self.settings.cf_directory = Some(dir);
       }
       Message::MMCBrowse => {
-        self.mmc_d.browse();
+        set_info_if_err!(self.info, self.mmc_d.browse());
         self.settings.mmc_directory = Some(self.mmc_d.to_string());
       }
+      Message::MMCOpen => {
+        set_info_if_err!(self.info, self.mmc_d.open());
+      }
       Message::CFBrowse => {
-        self.cf_d.browse();
+        set_info_if_err!(self.info, self.mmc_d.browse());
         self.settings.cf_directory = Some(self.cf_d.to_string());
+      }
+      Message::CFOpen => {
+        set_info_if_err!(self.info, self.cf_d.open());
       }
       Message::CFMPPicked(new) => {
         self.selected_cf_mp = Some(new);
@@ -127,7 +143,7 @@ impl Application for CurseForgeToMultiMC {
           self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Linked")));
 
           if let None = self.info {
-            self.info = result.as_ref().err().map(|it| (ERR_COLOR, it.to_string()))
+            set_info_if_err!(self.info, result.as_ref());
           }
         }
       }
@@ -141,7 +157,7 @@ impl Application for CurseForgeToMultiMC {
           self.info = result.as_ref().ok().map(|_| (OK_COLOR, String::from("Unlinked")));
 
           if let None = self.info {
-            self.info = result.as_ref().err().map(|it| (ERR_COLOR, it.to_string()))
+            set_info_if_err!(self.info, result.as_ref());
           }
         }
       }
@@ -150,14 +166,14 @@ impl Application for CurseForgeToMultiMC {
           if let Some(dir) = &selected.dir {
             let result = open::that(dir);
 
-            self.info = result.err().map(|it| (ERR_COLOR, it.to_string()))
+            set_info_if_err!(self.info, result.as_ref());
           }
         }
       }
       Message::OpenGithub => {
         let result = open::that(GITHUB_URL);
 
-        self.info = result.err().map(|it| (ERR_COLOR, it.to_string()))
+        set_info_if_err!(self.info, result.as_ref());
       }
       Message::Save => {
         self.flags.save_settings(&self.settings).unwrap();
@@ -195,6 +211,10 @@ impl Application for CurseForgeToMultiMC {
             Button::new(&mut self.mmc_browse_state, Text::new("Browse"))
               .on_press(Message::MMCBrowse)
           )
+          .push(
+            Button::new(&mut self.mmc_open_state, Text::new("Open"))
+              .on_press(Message::MMCOpen)
+          )
       )
       .push(
         Row::new()
@@ -208,6 +228,10 @@ impl Application for CurseForgeToMultiMC {
           .push(
             Button::new(&mut self.cf_browse_state, Text::new("Browse"))
               .on_press(Message::CFBrowse)
+          )
+          .push(
+            Button::new(&mut self.cf_open_state, Text::new("Open"))
+              .on_press(Message::CFOpen)
           )
       )
       .push(

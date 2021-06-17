@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::process::ExitStatus;
 
 macro_rules! directory {
   ($($name:ident),+) => {
@@ -35,16 +36,24 @@ pub trait Directory {
     self.path().to_str().unwrap_or_default().to_string()
   }
 
-  fn browse(&mut self) {
+  fn browse(&mut self) -> native_dialog::Result<()> {
     let mut fd = native_dialog::FileDialog::default();
 
     if self.path().exists() {
       fd = fd.set_location(self.path());
     }
 
-    if let Ok(Some(dir)) = fd.show_open_single_dir() {
+    let dir = fd.show_open_single_dir()?;
+
+    if let Some(dir) = dir {
       self.new_path(dir);
     }
+    
+    Ok(())
+  }
+
+  fn open(&self) -> std::io::Result<ExitStatus> {
+    open::that(self.path())
   }
 }
 
