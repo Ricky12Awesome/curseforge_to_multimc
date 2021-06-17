@@ -79,6 +79,7 @@ fn main() -> Result {
 
   <CurseForgeToMultiMC as Application>::run(Settings {
     flags,
+    exit_on_close_request: false,
     window: window::Settings {
       icon: Some(icon()?),
       size: (975, 650),
