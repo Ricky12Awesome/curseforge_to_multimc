@@ -13,7 +13,11 @@ https://user-images.githubusercontent.com/29931568/121932338-64d54e80-cd0a-11eb-
 
 Install
 -------
-WIP, right now you need to build it your self
+You can get the executable from the [releases](https://github.com/Ricky12Awesome/curseforge_to_multimc/releases)
+
+MacOS support is still WIP
+
+Linux support when CurseForge supports Linux (it can build on Linux, just won't be useful)
 
 Build
 -----
