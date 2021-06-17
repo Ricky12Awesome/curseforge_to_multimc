@@ -1,11 +1,8 @@
-use std::fs::{File, OpenOptions};
-use std::path::Path;
-
 use clap::Arg;
 use iced::window::Icon;
 use serde::{Deserialize, Serialize};
 
-use crate::TITLE;
+use crate::{TITLE, NAME};
 
 pub type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
@@ -48,7 +45,7 @@ pub fn hide_console() {
 
 #[derive(Default, Clone)]
 pub struct Flags {
-  pub settings_path: String,
+  pub settings_path: Option<String>,
 }
 
 impl Flags {
@@ -61,23 +58,30 @@ impl Flags {
         Arg::with_name("settings")
           .long("settings")
           .value_name("FILE")
-          .help("Sets custom settings file (this will be written to on change)")
+          .help("Custom settings path (settings format is TOML)")
           .takes_value(true)
-          .default_value("settings.json")
       )
       .get_matches();
 
     Self {
-      settings_path: matches.value_of("settings").unwrap_or("settings.json").to_string()
+      settings_path: matches.value_of("settings").map(str::to_string)
     }
   }
 
   pub fn load_settings(&self) -> ApplicationSettings {
-    ApplicationSettings::load_from(&self.settings_path)
+    match &self.settings_path {
+      Some(path) => confy::load_path(path),
+      None => confy::load(NAME),
+    }.unwrap_or_default()
   }
 
   pub fn save_settings(&self, settings: &ApplicationSettings) -> AnyResult<()> {
-    settings.save_to(&self.settings_path)
+    match &self.settings_path {
+      Some(path) => confy::store_path(path, settings),
+      None => confy::store(NAME, settings)
+    }?;
+
+    Ok(())
   }
 }
 
@@ -85,25 +89,4 @@ impl Flags {
 pub struct ApplicationSettings {
   pub mmc_directory: Option<String>,
   pub cf_directory: Option<String>,
-}
-
-impl ApplicationSettings {
-  pub fn load_from<P: AsRef<Path>>(path: P) -> Self {
-    match File::open(path) {
-      Ok(file) => serde_json::from_reader(&file).unwrap_or_default(),
-      Err(_) => Self::default()
-    }
-  }
-
-  pub fn save_to<P: AsRef<Path>>(&self, path: P) -> AnyResult<()> {
-    if path.as_ref().exists() {
-      let file = &OpenOptions::new().write(true).open(path)?;
-
-      serde_json::to_writer_pretty(file, self)?;
-    } else {
-      serde_json::to_writer_pretty(&File::create(path)?, self)?;
-    }
-
-    Ok(())
-  }
 }

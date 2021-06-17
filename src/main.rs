@@ -12,6 +12,7 @@ mod link;
 mod modpack;
 mod misc;
 
+const NAME: &'static str = env!("CARGO_PKG_NAME");
 const TITLE: &'static str = "CurseForge to MultiMC";
 const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
 const ERR_COLOR: Color = Color { r: 0.8, g: 0.0, b: 0.0, a: 1.0 };
