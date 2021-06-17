@@ -48,7 +48,7 @@ pub trait Directory {
     if let Some(dir) = dir {
       self.new_path(dir);
     }
-    
+
     Ok(())
   }
 

@@ -4,13 +4,15 @@ use iced::*;
 use iced_native::Event;
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
+use crate::ext::ButtonExt;
 use crate::misc::{ApplicationSettings, Flags, hide_console, icon};
-use crate::modpack::CFModPack;
+use crate::modpack::ModPack;
 
 mod directories;
 mod link;
 mod modpack;
 mod misc;
+mod ext;
 
 const NAME: &'static str = env!("CARGO_PKG_NAME");
 const TITLE: &'static str = "CurseForge to MultiMC";
@@ -54,12 +56,13 @@ struct CurseForgeToMultiMC {
   cf_ti_d_state: text_input::State,
   cf_browse_state: button::State,
   cf_open_state: button::State,
-  pick_cf_mp: pick_list::State<CFModPack>,
+  pick_mp_state: pick_list::State<ModPack>,
   link_btn_state: button::State,
   unlink_btn_state: button::State,
-  open_btn_state: button::State,
+  open_cf_btn_state: button::State,
+  open_mmc_btn_state: button::State,
   github_btn_state: button::State,
-  selected_cf_mp: Option<CFModPack>,
+  selected_mp: Option<ModPack>,
   info: Option<(Color, String)>,
   flags: Flags,
   settings: ApplicationSettings,
@@ -74,10 +77,11 @@ enum Message {
   MMCOpen,
   CFBrowse,
   CFOpen,
-  CFMPPicked(CFModPack),
+  CFMPPicked(ModPack),
   Link,
   Unlink,
-  Open,
+  OpenSelectedCF,
+  OpenSelectedMMC,
   OpenGithub,
   Save,
 }
@@ -129,11 +133,11 @@ impl Application for CurseForgeToMultiMC {
         set_info_if_err!(self.info, self.cf_d.open());
       }
       Message::CFMPPicked(new) => {
-        self.selected_cf_mp = Some(new);
+        self.selected_mp = Some(new);
         self.info = None;
       }
       Message::Link => {
-        if let Some(selected) = &self.selected_cf_mp {
+        if let Some(selected) = &self.selected_mp {
           let result = crate::link::link(
             self.mmc_d.clone(),
             self.cf_d.clone(),
@@ -148,7 +152,7 @@ impl Application for CurseForgeToMultiMC {
         }
       }
       Message::Unlink => {
-        if let Some(selected) = &self.selected_cf_mp {
+        if let Some(selected) = &self.selected_mp {
           let result = crate::link::unlink(
             self.mmc_d.clone(),
             selected.clone(),
@@ -161,9 +165,18 @@ impl Application for CurseForgeToMultiMC {
           }
         }
       }
-      Message::Open => {
-        if let Some(selected) = &self.selected_cf_mp {
-          if let Some(dir) = &selected.dir {
+      Message::OpenSelectedCF => {
+        if let Some(selected) = &self.selected_mp {
+          if let Some(dir) = &selected.cf_dir {
+            let result = open::that(dir);
+
+            set_info_if_err!(self.info, result.as_ref());
+          }
+        }
+      }
+      Message::OpenSelectedMMC => {
+        if let Some(selected) = &self.selected_mp {
+          if let Some(dir) = &selected.mmc_path(&self.mmc_d) {
             let result = open::that(dir);
 
             set_info_if_err!(self.info, result.as_ref());
@@ -194,6 +207,8 @@ impl Application for CurseForgeToMultiMC {
   }
 
   fn view(&mut self) -> Element<Message> {
+    let is_linked = self.selected_mp.clone().unwrap_or_default().is_linked(&self.mmc_d);
+
     Column::new()
       .padding(20)
       .spacing(8)
@@ -236,11 +251,49 @@ impl Application for CurseForgeToMultiMC {
       )
       .push(
         PickList::new(
-          &mut self.pick_cf_mp,
-          CFModPack::list(self.cf_d.clone(), &mut self.selected_cf_mp),
-          self.selected_cf_mp.clone(),
+          &mut self.pick_mp_state,
+          ModPack::list(self.cf_d.clone(), &mut self.selected_mp),
+          self.selected_mp.clone(),
           Message::CFMPPicked,
         ).width(Length::Fill)
+      )
+      .push(
+        Row::new()
+          .push(
+            Button::new(
+              &mut self.open_cf_btn_state,
+              Text::new("Open Selected [CurseForge]"),
+            ).on_press_if(Message::OpenSelectedCF, self.selected_mp.is_some())
+          )
+          .push(Space::with_width(Length::Units(12)))
+          .push(
+            Button::new(
+              &mut self.open_mmc_btn_state,
+              Text::new("Open Selected [MultiMC]"),
+            ).on_press_if(Message::OpenSelectedMMC, is_linked)
+          )
+      )
+      .push(
+        Row::new()
+          .push(
+            Button::new(
+              &mut self.link_btn_state,
+              Text::new("Link Selected"),
+            ).on_press_if(Message::Link, self.selected_mp.is_some() && !is_linked)
+          )
+          .push(Space::with_width(Length::Units(12)))
+          .push(
+            Button::new(
+              &mut self.unlink_btn_state,
+              Text::new("Unlink Selected"),
+            ).on_press_if(Message::Unlink, is_linked)
+          )
+      )
+      .push(
+        Button::new(
+          &mut self.github_btn_state,
+          Text::new("Github"),
+        ).on_press(Message::OpenGithub)
       )
       .push(Space::with_height(Length::Fill))
       .push(Text::new("This is a simple utility to help link CurseForge instances to MultiMC instances").size(IMPORTANT_SIZE))
@@ -272,48 +325,6 @@ impl Application for CurseForgeToMultiMC {
           .color(IMPORTANT_COLOR)
       )
       .push(Space::new(Length::Fill, Length::Fill))
-      .push(
-        Button::new(
-          &mut self.github_btn_state,
-          Text::new("Github"),
-        ).on_press(Message::OpenGithub)
-      )
-      .push(
-        match &self.selected_cf_mp {
-          Some(mp) => Button::new(
-            &mut self.link_btn_state,
-            Text::new(format!("Link ({})", mp)),
-          ).on_press(Message::Link),
-          None => Button::new(
-            &mut self.link_btn_state,
-            Text::new("Link (None)"),
-          )
-        }
-      )
-      .push(
-        match &self.selected_cf_mp {
-          Some(mp) => Button::new(
-            &mut self.unlink_btn_state,
-            Text::new(format!("Unlink ({})", mp)),
-          ).on_press(Message::Unlink),
-          None => Button::new(
-            &mut self.unlink_btn_state,
-            Text::new("Unlink (None)"),
-          )
-        }
-      )
-      .push(
-        match &self.selected_cf_mp {
-          Some(mp) => Button::new(
-            &mut self.open_btn_state,
-            Text::new(format!("Open ({})", mp)),
-          ).on_press(Message::Open),
-          None => Button::new(
-            &mut self.open_btn_state,
-            Text::new("Open (None)"),
-          )
-        }
-      )
       .push::<Element<Message>>(
         match &self.info {
           Some((color, err)) => {

@@ -2,7 +2,7 @@ use clap::Arg;
 use iced::window::Icon;
 use serde::{Deserialize, Serialize};
 
-use crate::{TITLE, NAME};
+use crate::{NAME, TITLE};
 
 pub type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 

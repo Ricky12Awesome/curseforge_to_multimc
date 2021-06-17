@@ -1,33 +1,33 @@
 use std::fmt::Formatter;
 use std::fs::{create_dir, File, remove_dir_all};
+use std::io::Write;
 
 use serde::{Deserialize, Serialize};
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
-use crate::modpack::CFModPack;
-use std::io::Write;
+use crate::modpack::ModPack;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CFMinecraftInstance {
-  name: String,
-  #[serde(alias = "baseModLoader")] loader: CFBaseModLoader,
+pub struct CFMinecraftInstance {
+  pub name: String,
+  #[serde(alias = "baseModLoader")] pub loader: CFBaseModLoader,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CFBaseModLoader {
-  name: String,
-  #[serde(alias = "forgeVersion")] version: String,
-  #[serde(alias = "minecraftVersion")] mc_version: String,
+pub struct CFBaseModLoader {
+  pub name: String,
+  #[serde(alias = "forgeVersion")] pub version: String,
+  #[serde(alias = "minecraftVersion")] pub mc_version: String,
 }
 
-enum CFMinecraftLoaderVersion {
+pub enum CFMinecraftLoaderVersion {
   Forge(String),
   Fabric(String),
   Unknown,
 }
 
 impl CFBaseModLoader {
-  fn version(&self) -> CFMinecraftLoaderVersion {
+  pub fn version(&self) -> CFMinecraftLoaderVersion {
     match self.name.split_once("-") {
       Some(("forge", _)) => CFMinecraftLoaderVersion::Forge(self.version.clone()),
       Some(("fabric", _)) => CFMinecraftLoaderVersion::Fabric(self.version.clone()),
@@ -37,16 +37,16 @@ impl CFBaseModLoader {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CFModLoadersJson {
-  id: String,
+pub struct CFModLoadersJson {
+  pub id: String,
 }
 
 #[derive(Debug)]
 pub struct LinkError {
-  msg: &'static str,
-  mmc: MultiMCDirectory,
-  cf: CurseForgeDirectory,
-  selected: CFModPack,
+  pub msg: &'static str,
+  pub mmc: MultiMCDirectory,
+  pub cf: CurseForgeDirectory,
+  pub selected: ModPack,
 }
 
 impl std::error::Error for LinkError {}
@@ -55,7 +55,7 @@ fn err<'a>(
   msg: &'static str,
   mmc: MultiMCDirectory,
   cf: CurseForgeDirectory,
-  selected: CFModPack,
+  selected: ModPack,
 ) -> Result<()> {
   Err(Box::new(LinkError { msg, mmc, cf, selected }))
 }
@@ -68,7 +68,7 @@ impl std::fmt::Display for LinkError {
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn create_mmc_instance_cfg(instance: &CFMinecraftInstance) -> String {
+pub fn gen_mmc_instance_cfg(instance: &CFMinecraftInstance) -> String {
   let mut str = String::new();
 
   str.push_str("InstanceType=OneSix\n");
@@ -88,7 +88,7 @@ fn create_mmc_instance_cfg(instance: &CFMinecraftInstance) -> String {
   str
 }
 
-fn create_mmc_pack_json(instance: &CFMinecraftInstance) -> serde_json::Value {
+pub fn gen_mmc_pack_json(instance: &CFMinecraftInstance) -> serde_json::Value {
   let minecraft_component = |instance: &CFMinecraftInstance| {
     serde_json::json!({
       "cachedName": "Minecraft",
@@ -127,17 +127,17 @@ fn create_mmc_pack_json(instance: &CFMinecraftInstance) -> serde_json::Value {
   )
 }
 
-fn get_cf_instance(selected: &CFModPack) -> Result<CFMinecraftInstance> {
-  let path = selected.path().join("minecraftinstance.json");
+pub fn get_cf_instance(mp: &ModPack) -> Result<CFMinecraftInstance> {
+  let path = mp.cf_path().join("minecraftinstance.json");
 
   Ok(serde_json::from_reader(&File::open(&path)?)?)
 }
 
 pub fn unlink(
   mmc: MultiMCDirectory,
-  selected: CFModPack,
+  mp: ModPack,
 ) -> Result<()> {
-  let instance = get_cf_instance(&selected)?;
+  let instance = get_cf_instance(&mp)?;
   let mmc_path = mmc.path.join(&instance.name);
 
   remove_dir_all(mmc_path)?;
@@ -148,15 +148,15 @@ pub fn unlink(
 pub fn link(
   mmc: MultiMCDirectory,
   cf: CurseForgeDirectory,
-  selected: CFModPack,
+  mp: ModPack,
 ) -> Result<()> {
-  let instance = get_cf_instance(&selected)?;
-  let mmc_pack = serde_json::to_string_pretty(&create_mmc_pack_json(&instance))?;
-  let mmc_cfg = create_mmc_instance_cfg(&instance);
+  let instance = get_cf_instance(&mp)?;
+  let mmc_pack = serde_json::to_string_pretty(&gen_mmc_pack_json(&instance))?;
+  let mmc_cfg = gen_mmc_instance_cfg(&instance);
   let mmc_path = mmc.path().join(&instance.name);
 
   if mmc_path.exists() {
-    return err("A folder with that name already exists", mmc, cf, selected);
+    return err("A folder with that name already exists", mmc, cf, mp);
   }
 
   create_dir(&mmc_path)?;
@@ -167,11 +167,11 @@ pub fn link(
   mmc_cfg_file.write(mmc_cfg.as_bytes())?;
   mmc_pack_file.write(mmc_pack.as_bytes())?;
 
-  match symlink::symlink_dir(selected.path(), mmc_path.join("minecraft")) {
+  match symlink::symlink_dir(mp.cf_path(), mmc_path.join("minecraft")) {
     Ok(_) => Ok(()),
     Err(_) => {
       remove_dir_all(&mmc_path)?;
-      err("No permission to create symlink (Needs admin perms)", mmc, cf, selected)
+      err("No permission to create symlink (Needs admin perms)", mmc, cf, mp)
     }
   }
 }
