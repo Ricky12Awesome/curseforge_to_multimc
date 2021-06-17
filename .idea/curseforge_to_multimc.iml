@@ -41,6 +41,8 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/num-rational-18aaa48b7eaa7486/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/num-traits-926c5efa2955ea8c/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-577f34f90924d0ac/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-a578d796490b02f1/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/winapi-7b086e09b526ab09/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

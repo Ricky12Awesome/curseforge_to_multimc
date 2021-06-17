@@ -1,38 +1,43 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 macro_rules! directory {
   ($($name:ident),+) => {
     $(#[derive(Debug, Clone)]
     pub struct $name {
-      pub path: Box<Path>,
+      pub path: PathBuf,
     }
 
     impl Directory for $name {
+      fn new<P: AsRef<Path>>(path: P) -> Self {
+        Self {
+          path: path.as_ref().to_path_buf()
+        }
+      }
+
       fn path(&self) -> &Path { &self.path }
-      fn path_mut(&mut self) -> &mut Path { &mut self.path }
-      fn new_path(&mut self, path: Box<Path>) {
-        self.path = path;
+       fn new_path<P: AsRef<Path>>(&mut self, path: P) {
+        self.path = path.as_ref().to_path_buf();
       }
     })+
   };
 }
 
 pub trait Directory {
+  fn new<P: AsRef<Path>>(path: P) -> Self;
   fn path(&self) -> &Path;
-  fn path_mut(&mut self) -> &mut Path;
-  fn new_path(&mut self, path: Box<Path>);
+  fn new_path<P: AsRef<Path>>(&mut self, path: P);
 
   fn exists(&self) -> bool {
     self.path().exists()
   }
 
-  fn name(&self) -> String {
+  fn to_string(&self) -> String {
     self.path().to_str().unwrap_or_default().to_string()
   }
 
   fn name_if_exists(&self) -> String {
     if self.exists() {
-      self.name()
+      self.to_string()
     } else {
       String::from("")
     }
@@ -46,7 +51,7 @@ pub trait Directory {
     }
 
     if let Ok(Some(dir)) = fd.show_open_single_dir() {
-      self.new_path(dir.as_path().into());
+      self.new_path(dir);
     }
   }
 }
