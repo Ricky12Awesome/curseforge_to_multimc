@@ -262,14 +262,14 @@ impl Application for CurseForgeToMultiMC {
           .push(
             Button::new(
               &mut self.open_cf_btn_state,
-              Text::new("Open Selected [CurseForge]"),
+              Text::new("Open CurseForge Instance"),
             ).on_press_if(Message::OpenSelectedCF, self.selected_mp.is_some())
           )
           .push(Space::with_width(Length::Units(12)))
           .push(
             Button::new(
               &mut self.open_mmc_btn_state,
-              Text::new("Open Selected [MultiMC]"),
+              Text::new("Open MultiMC Instance"),
             ).on_press_if(Message::OpenSelectedMMC, is_linked)
           )
       )
@@ -278,14 +278,14 @@ impl Application for CurseForgeToMultiMC {
           .push(
             Button::new(
               &mut self.link_btn_state,
-              Text::new("Link Selected"),
+              Text::new("Link"),
             ).on_press_if(Message::Link, self.selected_mp.is_some() && !is_linked)
           )
           .push(Space::with_width(Length::Units(12)))
           .push(
             Button::new(
               &mut self.unlink_btn_state,
-              Text::new("Unlink Selected"),
+              Text::new("Unlink"),
             ).on_press_if(Message::Unlink, is_linked)
           )
       )
