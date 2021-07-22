@@ -1,0 +1,6 @@
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    "-Ctarget-feature=+crt-static",
+#    "-Clink-args=/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib",
+    "-Clink-args=libvcruntime.lib",
+]
