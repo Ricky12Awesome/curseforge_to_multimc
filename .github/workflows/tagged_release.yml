@@ -91,7 +91,7 @@ jobs:
         shell: bash
         run: |
           rm -f target/release/${{ env.FILE_NAME }}
-          cargo wix clean
+          rm -rf target/wix
 
       - name: Run Build
         uses: actions-rs/cargo@v1

@@ -469,7 +469,7 @@ dependencies = [
 
 [[package]]
 name = "curseforge_to_multimc"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "clap",
  "confy",
