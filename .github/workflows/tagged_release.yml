@@ -86,14 +86,23 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-      - uses: actions-rs/cargo@v1
+        # IDK how to exclude these from caching in the fist place, so I just delete them
+      - name: Clean Cached Files
+        shell: bash
+        run: |
+          rm -f target/release/${{ env.FILE_NAME }}
+          cargo wix clean
+
+      - name: Run Build
+        uses: actions-rs/cargo@v1
         with:
           command: build
           use-cross: ${{ matrix.job.use-cross }}
           toolchain: ${{ matrix.rust }}
           args: --release
 
-      - uses: actions-rs/cargo@v1
+      - name: Run Wix
+        uses: actions-rs/cargo@v1
         if: matrix.job.os-name == 'windows'
         with:
           command: wix
@@ -103,11 +112,7 @@ jobs:
 
       - name: Rename Binaries
         shell: bash
-        run: |
-          cd target/release/
-
-          rm -f ${{ env.FILE_NAME }} # This gets cached for some reason, so we remove it
-          mv -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
+        run: mv -f target/release/${{ env.BASE_FILE_NAME }} target/release/${{ env.FILE_NAME }}
 
       - name: Upload Application
         uses: actions/upload-artifact@v2

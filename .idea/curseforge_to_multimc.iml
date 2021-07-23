@@ -87,6 +87,7 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/winapi-5d9be5436fe85862/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-01cf6d595d7df5e5/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-99b737fbbb52f2b9/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-1f88cacf532a9fd9/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/curseforge_to_multimc-f76556e1e3d5b81c/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
