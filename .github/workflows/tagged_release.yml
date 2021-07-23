@@ -33,25 +33,25 @@ jobs:
             binary-postfix: ""
             use-cross: false
 
-           # CurseForge doesn't support linux yet, so why build for it?
-#          - os: ubuntu-latest
-#            os-name: linux
-#            target: x86_64-unknown-linux-gnu
-#            architecture: x86_64
-#            binary-postfix: ""
-#            use-cross: false
-#          - os: ubuntu-latest
-#            os-name: linux
-#            target: aarch64-unknown-linux-gnu
-#            architecture: arm64
-#            binary-postfix: ""
-#            use-cross: true
-#          - os: ubuntu-latest
-#            os-name: linux
-#            target: i686-unknown-linux-gnu
-#            architecture: i686
-#            binary-postfix: ""
-#            use-cross: true
+          # CurseForge doesn't support linux yet, so why build for it?
+    #          - os: ubuntu-latest
+    #            os-name: linux
+    #            target: x86_64-unknown-linux-gnu
+    #            architecture: x86_64
+    #            binary-postfix: ""
+    #            use-cross: false
+    #          - os: ubuntu-latest
+    #            os-name: linux
+    #            target: aarch64-unknown-linux-gnu
+    #            architecture: arm64
+    #            binary-postfix: ""
+    #            use-cross: true
+    #          - os: ubuntu-latest
+    #            os-name: linux
+    #            target: i686-unknown-linux-gnu
+    #            architecture: i686
+    #            binary-postfix: ""
+    #            use-cross: true
 
     steps:
       - name: Checkout
@@ -71,7 +71,7 @@ jobs:
       - name: Setup Enviroment Variables
         shell: bash
         run: |
-          echo "FILE_PATH=target/${{ matrix.job.target }}/release/${{ env.FILE_NAME }}" >> $GITHUB_ENV
+          echo "FILE_PATH=target/release/${{ env.FILE_NAME }}" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -80,6 +80,10 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Install Wix
+        if: matrix.job.os-name == 'windows'
+        run: cargo install cargo-wix
+
       - uses: Swatinem/rust-cache@v1
 
       - uses: actions-rs/cargo@v1
@@ -87,21 +91,37 @@ jobs:
           command: build
           use-cross: ${{ matrix.job.use-cross }}
           toolchain: ${{ matrix.rust }}
-          args: --release --target ${{ matrix.job.target }}
+          args: --release
+
+      - uses: actions-rs/cargo@v1
+        if: matrix.job.os-name == 'windows'
+        with:
+          command: wix
+          use-cross: ${{ matrix.job.use-cross }}
+          toolchain: ${{ matrix.rust }}
+          args: --nocapture --no-build
 
       - name: Rename Binaries
         shell: bash
         run: |
-          cd target/${{ matrix.job.target }}/release/
+          cd target/release/
 
           rm -f ${{ env.FILE_NAME }} # This gets cached for some reason, so we remove it
           mv -f ${{ env.BASE_FILE_NAME }} ${{ env.FILE_NAME }}
 
-      - name: Upload Artifact
+      - name: Upload Application
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.ATRIFACT_NAME }}
           path: ${{ env.FILE_PATH }}
+          retention-days: 1
+
+      - name: Upload Application Installer
+        if: matrix.job.os-name == 'windows'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ATRIFACT_NAME }}
+          path: target/wix/*.msi
           retention-days: 1
 
   release:
