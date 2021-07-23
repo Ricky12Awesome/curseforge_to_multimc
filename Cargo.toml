@@ -1,6 +1,6 @@
 [package]
 name = "curseforge_to_multimc"
-version = "0.4.20"
+version = "0.5.0"
 authors = ["Ricky12Awesome <rickygraveen@gmail.com>"]
 edition = "2018"
 description = "Links CurseForge instances to MultiMC instances"
