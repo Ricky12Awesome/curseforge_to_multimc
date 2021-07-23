@@ -3,6 +3,11 @@ name = "curseforge_to_multimc"
 version = "0.4.20"
 authors = ["Ricky12Awesome <rickygraveen@gmail.com>"]
 edition = "2018"
+description = "Links CurseForge instances to MultiMC instances"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Ricky12Awesome/curseforge_to_multimc"
+homepage = "https://github.com/Ricky12Awesome/curseforge_to_multimc"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

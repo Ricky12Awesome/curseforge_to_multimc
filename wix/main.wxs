@@ -29,23 +29,24 @@
 <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
 <?endif ?>
 
-<?define Name = "curseforge_to_multimn" ?>
-<?define Description = "Links Curseforge instances to MultiMC instances." ?>
-<?define Manufacturer = "Ricky12Awesome" ?>
+<?define Name = "CurseFroge To MultiMC"?>
+<?define CodeName = "curseforge_to_multimc"?>
+<?define Description = "Links CurseForge instances to MultiMC instances"?>
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-    <Product
-            Id='*'
-            Name='$(var.Name)'
-            UpgradeCode='45B17B4F-3932-457D-9C1C-5AA458BDA864'
-            Manufacturer='Ricky12Awesome'
-            Language='1033'
-            Codepage='1252'
-            Version='$(var.Version)'>
+
+    <Product Id='*'
+             Name='$(var.Name)'
+             UpgradeCode='2FC7C321-5B62-4521-9070-A78A736D20B8'
+             Manufacturer='Ricky12Awesome'
+             Language='1033'
+             Codepage='1252'
+             Version='$(var.Version)'>
 
         <Package Id='*'
                  Keywords='Installer'
-                 Manufacturer='$(var.Manufacturer)'
+                 Description='$(var.Description)'
+                 Manufacturer='Ricky12Awesome'
                  InstallerVersion='450'
                  Languages='1033'
                  Compressed='yes'
@@ -57,40 +58,131 @@
                 Schedule='afterInstallInitialize'
                 DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
 
+        <Property Id="APPLICATIONFOLDER" Secure="yes">
+            <RegistrySearch Id="FindInstallLocation"
+                            Root="HKCU"
+                            Key="Software\$(var.CodeName)"
+                            Name="InstallationPath"
+                            Type="raw"
+                            Win64="$(var.Win64)"/>
+        </Property>
+
         <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1'/>
         <Property Id='DiskPrompt' Value='$(var.Name) Installation'/>
+        <Property Id="START_VIA_REGISTRY">1</Property>
 
-        <Feature
-                Id='Binaries'
-                Title='Application'
-                Description='Installs all binaries and the license.'
-                Level='1'
-                ConfigurableDirectory='APPLICATIONFOLDER'
-                AllowAdvertise='no'
-                Display='expand'
-                Absent='disallow'>
+        <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="$(var.Name)">
+                    <Component Id='ApplicationShortcut' Guid='*' Win64='$(var.Win64)'>
+                        <Shortcut Id='ApplicationStartMenuShortcut'
+                                  Name='$(var.Name)'
+                                  Description='$(var.Description)'
+                                  Target='[!curseforge_to_multimc.exe]'
+                                  WorkingDirectory='APPLICATIONFOLDER'/>
+
+                        <RemoveFolder Id='CleanUpShortCut' Directory='ApplicationProgramsFolder' On='uninstall'/>
+
+                        <RegistryValue Root='HKCU'
+                                       Key='Software\$(var.CodeName)'
+                                       Name='installed'
+                                       Type='integer'
+                                       Value='1'
+                                       KeyPath='yes'/>
+
+                        <RegistryValue Root='HKCU'
+                                       Key='Software\$(var.CodeName)'
+                                       Name='InstallationPath'
+                                       Type='string'
+                                       Value='[APPLICATIONFOLDER]'/>
+                    </Component>
+                </Directory>
+            </Directory>
+
+            <Directory Id="DesktopFolder" Name="Desktop">
+                <Component Id="ApplicationShortcutDesktop" Guid="*">
+                    <Shortcut Id="ApplicationDesktopShortcut"
+                              Name='$(var.Name)'
+                              Description='$(var.Description)'
+                              Target='[!curseforge_to_multimc.exe]'
+                              WorkingDirectory='APPLICATIONFOLDER'/>
+
+                    <RemoveFolder Id="CleanUpDesktopShortcut" On="uninstall"/>
+                    <RegistryValue Root="HKCU"
+                                   Key='Software\$(var.CodeName)'
+                                   Name="DesktopShortcut"
+                                   Type="integer"
+                                   Value="1"
+                                   KeyPath="yes"/>
+                </Component>
+            </Directory>
+
+            <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
+                <Directory Id='APPLICATIONFOLDER' Name='$(var.Name)'>
+                    <Component Id='License' Guid='*' Win64='$(var.Win64)'>
+                        <File Id='LicenseFile' Name='LICENSE.rtf' DiskId='1' Source='wix/LICENSE.rtf' KeyPath='yes'/>
+                    </Component>
+
+                    <Component Id='curseforge_to_multimc.exe' Guid='*' Win64='$(var.Win64)'>
+                        <File Id='curseforge_to_multimc.exe'
+                              Name='curseforge_to_multimc.exe'
+                              DiskId='1'
+                              Source='target\release\curseforge_to_multimc.exe'
+                              KeyPath='yes'/>
+                    </Component>
+
+                    <Component Id='Path' Guid='{34c05f2d-52fc-4bdb-a1f1-63d807006db3}' Win64='$(var.Win64)'
+                               KeyPath='yes'>
+                        <Environment Id='PATH'
+                                     Name='PATH'
+                                     Value='[APPLICATIONFOLDER]'
+                                     Permanent='no'
+                                     Part='last'
+                                     Action='set'
+                                     System='yes'/>
+                    </Component>
+                </Directory>
+            </Directory>
+        </Directory>
+
+        <Feature Id='MainProgram'
+                 Title='Application'
+                 Description='Installs ${var.Name}.'
+                 Level='1'
+                 ConfigurableDirectory='APPLICATIONFOLDER'
+                 AllowAdvertise='no'
+                 Display='expand'
+                 Absent='disallow'>
+
+            <ComponentRef Id='curseforge_to_multimc.exe'/>
+            <ComponentRef Id='ApplicationShortcut'/>
 
             <!--
-              Uncomment the following `ComponentRef` tag to add the license
-              sidecar file to the installer.
+              Comment out or remove the following `ComponentRef` tag to remove
+              the license sidecar file from the installer.
             -->
             <ComponentRef Id='License'/>
 
-            <ComponentRef Id='binary0'/>
-
-            <ComponentRef Id="ApplicationShortcut" />
-
-            <Feature
-                    Id='Environment'
-                    Title='PATH Environment Variable'
-                    Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
-                    Level='1'
-                    Absent='allow'>
+            <Feature Id='Environment'
+                     Title='PATH Environment Variable'
+                     Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
+                     Level='1'
+                     Absent='allow'>
                 <ComponentRef Id='Path'/>
+            </Feature>
+
+            <Feature Id='DesktopShortcut'
+                     Title='Add a Desktop shortcut'
+                     Description='Creates a shortcut on your desktop for easier access.'
+                     Level='1'
+                     Absent='allow'>
+
+                <ComponentRef Id='ApplicationShortcutDesktop'/>
             </Feature>
         </Feature>
 
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
+
 
         <!--
           Uncomment the following `Icon` and `Property` tags to change the product icon.
@@ -98,45 +190,30 @@
           The product icon is the graphic that appears in the Add/Remove
           Programs control panel for the application.
         -->
-        <Icon Id='ProductICO' SourceFile='assets\icon.ico'/>
-        <Property Id='ARPPRODUCTICON' Value='ProductICO'/>
+        <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
+        <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
-        <!--
-          Adding a URL to Add/Remove Programs control panel listing for the
-          application is a two step process:
-
-          1. Uncomment the following `Property` tag with the "ARPHELPLINK" Id
-             attribute value.
-          2. Change the value for `Value` attribute of the following
-             `Property` tag to a valid URL.
-        -->
-        <!--<Property Id='ARPHELPLINK' Value='ChangeMe'/>-->
+        <Property Id='ARPHELPLINK' Value='https://github.com/Ricky12Awesome/curseforge_to_multimc'/>
 
         <UI>
             <UIRef Id='WixUI_FeatureTree'/>
-
             <!--
-              Enabling the EULA dialog in the installer is a three step process:
+              Disabling the EULA dialog in the installer is a two step process:
 
-                1. Comment out or remove the two `Publish` tags that follow the
-                   `WixVariable` tag.
-                2. Uncomment the `<WixVariable Id='WixUILicenseRtf' Value='Path\to\Eula.rft'>` tag futher down
-                3. Replace the `Value` attribute of the `WixVariable` tag with
-                   the path to a RTF file that will be used as the EULA and
-                   displayed in the license agreement dialog.
+                 1. Uncomment the following two `Publish` tags
+                 2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
+
             -->
-            <Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>
-            <Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>
+            <!--<Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>-->
+            <!--<Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>-->
 
         </UI>
 
-
         <!--
-          Enabling the EULA dialog in the installer requires uncommenting
-          the following `WixUILicenseRTF` tag and changing the `Value`
-          attribute.
+          Disabling the EULA dialog in the installer requires commenting out
+          or removing the following `WixVariable` tag
         -->
-        <!-- <WixVariable Id='WixUILicenseRtf' Value='Relative\Path\to\Eula.rtf'/> -->
+        <WixVariable Id='WixUILicenseRtf' Value='wix\License.rtf'/>
 
 
         <!--
@@ -162,76 +239,4 @@
 
     </Product>
 
-    <Fragment>
-        <Directory Id='TARGETDIR' Name='SourceDir'>
-            <Directory Id="ProgramMenuFolder">
-                <Directory Id="ApplicationProgramsFolder" Name="$(var.Name)" />
-            </Directory>
-
-            <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
-                <Directory Id='APPLICATIONFOLDER' Name='$(var.Name)'>
-
-                    <!--
-                      Enabling the license sidecar file in the installer is a four step process:
-
-                      1. Uncomment the `Component` tag and its contents.
-                      2. Change the value for the `Source` attribute in the `File` tag to a path
-                         to the file that should be included as the license sidecar file. The path
-                         can, and probably should be, relative to this file.
-                      3. Change the value for the `Name` attribute in the `File` tag to the
-                         desired name for the file when it is installed alongside the `bin` folder
-                         in the installation directory. This can be omitted if the desired name is
-                         the same as the file name.
-                      4. Uncomment the `ComponentRef` tag with the Id attribute value of "License"
-                         further down in this file.
-                    -->
-
-                    <Component Id='License' Guid='*' Win64='$(var.Win64)'>
-                        <File Id='LicenseFile' Name='LICENSE' DiskId='1' Source='LICENSE' KeyPath='yes'/>
-                    </Component>
-
-                    <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='BAEE3846-ABB0-455A-82DC-00B274783DF4' Win64='$(var.Win64)'
-                                   KeyPath='yes'>
-                            <Environment
-                                    Id='PATH'
-                                    Name='PATH'
-                                    Value='[Bin]'
-                                    Permanent='no'
-                                    Part='last'
-                                    Action='set'
-                                    System='yes'/>
-                        </Component>
-
-                        <Component Id='binary0' Guid='*' Win64='$(var.Win64)'>
-                            <File
-                                    Id='exe0'
-                                    Name='curseforge_to_multimc.exe'
-                                    DiskId='1'
-                                    Source='target\$(var.Profile)\curseforge_to_multimc.exe'
-                                    KeyPath='yes'/>
-                        </Component>
-                    </Directory>
-                </Directory>
-            </Directory>
-        </Directory>
-    </Fragment>
-
-    <Fragment>
-        <DirectoryRef Id="ApplicationProgramsFolder">
-            <!--Create application shortcut in Program Menu-->
-            <Component Id="ApplicationShortcut" Guid="*">
-                <Shortcut Id="ApplicationStartMenuShortcut"
-                          Name="$(var.Name)"
-                          Description="$(var.Description)"
-                          Target="[#$(var.Name).exe]"
-                          WorkingDirectory="Bin"
-                />
-                <!--Remove application shortcut from Program Menu on uninstall-->
-                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
-                <!--Create application registry entry-->
-                <RegistryValue Root="HKCU" Key="Software\Microsoft\$(var.Manufacturer)\$(var.Name)" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-            </Component>
-        </DirectoryRef>
-    </Fragment>
 </Wix>
