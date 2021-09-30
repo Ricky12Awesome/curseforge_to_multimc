@@ -9,14 +9,14 @@ use crate::misc::{ApplicationSettings, Flags, hide_console, icon};
 use crate::modpack::ModPack;
 
 mod directories;
-mod link;
-mod modpack;
-mod misc;
 mod ext;
+mod link;
+mod misc;
+mod modpack;
 
 const NAME: &'static str = env!("CARGO_PKG_NAME");
 const TITLE: &'static str = "CurseForge to MultiMC";
-const GITHUB_URL: &'static str = "https://github.com/Ricky12Awesome/curseforge_to_multimc";
+const GITHUB_URL: &'static str = env!("CARGO_PKG_REPOSITORY");
 const ERR_COLOR: Color = Color { r: 0.8, g: 0.0, b: 0.0, a: 1.0 };
 const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
 const IMPORTANT_SIZE: u16 = 24;

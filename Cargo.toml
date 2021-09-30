@@ -12,22 +12,22 @@ homepage = "https://github.com/Ricky12Awesome/curseforge_to_multimc"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33.3"
-confy = "0.4.0"
-iced = "0.3.0"
-iced_native = "0.4.0"
-thiserror = "1.0.25"
-open = "1.7.0"
-symlink = "0.1.0"
-image = "0.23.14"
-native-dialog = "0.5.5"
-serde = { version = "1.0.126", features = ["derive"] }
-serde_json = "1.0.64"
+clap = "^2"
+confy = "^0.4"
+iced = "^0.3"
+iced_native = "^0.4"
+thiserror = "^1"
+open = "^1"
+symlink = "^0.1"
+image = "^0.23"
+native-dialog = "^0.5"
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1"
 
 [target.'cfg(windows)'.dependencies]
-winapi = "0.3.9"
+winapi = "^0.3"
 
 [target.'cfg(windows)'.build-dependencies]
-winapi = "0.3.9"
-winres = "0.1"
+winapi = "^0.3"
+winres = "^0.1"
 

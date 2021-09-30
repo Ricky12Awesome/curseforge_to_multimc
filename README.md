@@ -10,9 +10,9 @@ I haven't updated this in a while, here's some things I want to add
 
 - [ ] **Update info/warning text in app**
 - [ ] **Command support**
-- [ ] **FTB Luancher modpacks support**
+- [ ] **FTB Launcher modpacks support**
 - [ ] **Dark theme**
-- [ ] **MacOS supprt** *(Installing via .deb or homebrew, I don't use mac so this is a bit annoying to test if it actually works or not)*
+- [ ] **MacOS support** *(Installing via .deb or homebrew, I don't use mac so this is a bit annoying to test if it actually works or not)*
 - [ ] **Linux Support** *(Building yourself should work)*
 
 How it will work
