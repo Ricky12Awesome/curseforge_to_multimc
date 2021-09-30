@@ -4,20 +4,42 @@ A simple application to link CurseForge to MultiMC
 
 Useful when you just want to use CurseForge for updating modpacks/mods
 
+TODO
+----
+I haven't updated this in a while, here's some things I want to add
+
+- [ ] **Update info/warning text in app**
+- [ ] **Command support**
+- [ ] **FTB Luancher modpacks support**
+- [ ] **Dark theme**
+- [ ] **MacOS supprt** *(Installing via .deb or homebrew, I don't use mac so this is a bit annoying to test if it actually works or not)*
+- [ ] **Linux Support** *(Building yourself should work)*
+
 How it will work
 ----------------
 It will use symbolic links to link CurseForge directory to MultiMC directory
 for the selected instance
 
-https://user-images.githubusercontent.com/29931568/121932338-64d54e80-cd0a-11eb-8ff8-187f52526fde.mp4
+<details>
+  <summary>Images (Last Updated: v0.5.2)</summary>
+
+  ![image](https://user-images.githubusercontent.com/29931568/135523491-ed60eecd-fa5f-415e-b619-107b2724d0b2.png)
+  ![image](https://user-images.githubusercontent.com/29931568/135523975-c8fa837f-cb92-4fd1-ad83-1ae27226f657.png)
+  ![image](https://user-images.githubusercontent.com/29931568/135524032-4e613e18-5b06-42ef-a45d-88327edae2a5.png)
+</details>
 
 Install
 -------
-You can get the executable from the [releases](https://github.com/Ricky12Awesome/curseforge_to_multimc/releases)
 
-MacOS support is still WIP
+**Windows**
+You can get the executable from [releases](https://github.com/Ricky12Awesome/curseforge_to_multimc/releases),
+their will be an installer *(`.msi`)* and a standalone *(`.exe`)*
 
-Linux support when CurseForge supports Linux (it can build on Linux, just won't be useful)
+**MacOS**
+Currently not implemented
+
+**Linux**
+Build it yourself, this will be updated in the future for more clear instructions.
 
 Build
 -----
