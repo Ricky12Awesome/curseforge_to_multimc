@@ -19,7 +19,6 @@ iced_native = "^0.4"
 thiserror = "^1"
 open = "^1"
 symlink = "^0.1"
-image = "^0.23"
 native-dialog = "^0.5"
 serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"

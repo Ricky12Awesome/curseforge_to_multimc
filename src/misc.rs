@@ -6,7 +6,7 @@ use crate::{NAME, TITLE};
 
 pub type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-include!(concat!(env!("OUT_DIR"), "/assets/raw_icon.rs"));
+include!("../assets/raw_icon.rs");
 
 fn gen_icon() -> std::result::Result<Icon, iced::window::icon::Error> {
   let icon = Icon::from_rgba(Vec::from(RawIcon::PIXELS), RawIcon::WIDTH, RawIcon::HEIGHT)?;

@@ -1,7 +1,10 @@
 fn icon_to_raw() -> std::result::Result<(), Box<dyn std::error::Error>> {
   const SOURCE: &[u8] = include_bytes!("./assets/icon.ico");
 
-  let out_dir = std::env::var("OUT_DIR")?;
+  if std::path::Path::new("./assets/raw_icon.rs").exists() {
+    return Ok(())
+  }
+
   let image = ::image::load_from_memory(SOURCE)?;
   let image = image.to_rgba8();
   let pixels = image.pixels()
@@ -11,20 +14,16 @@ fn icon_to_raw() -> std::result::Result<(), Box<dyn std::error::Error>> {
     .collect::<Vec<_>>();
 
   let code = format!(r"
-    struct RawIcon;
+struct RawIcon;
 
-    impl RawIcon {{
-      const WIDTH: u32 = {};
-      const HEIGHT: u32 = {};
-      const PIXELS: &'static [u8] = &{:?};
-    }}
+impl RawIcon {{
+  const WIDTH: u32 = {};
+  const HEIGHT: u32 = {};
+  const PIXELS: &'static [u8] = &{:?};
+}}
   ", image.width(), image.height(), pixels);
 
-  let dir = format!("{}/assets", out_dir);
-  let file = format!("{}/raw_icon.rs", dir);
-
-  std::fs::create_dir_all(dir)?;
-  std::fs::write(file, code)?;
+  std::fs::write("./assets/raw_icon.rs", code)?;
 
   Ok(())
 }
