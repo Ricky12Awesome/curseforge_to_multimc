@@ -6,18 +6,10 @@ use crate::{NAME, TITLE};
 
 pub type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
+include!(concat!(env!("OUT_DIR"), "/assets/raw_icon.rs"));
+
 fn gen_icon() -> std::result::Result<Icon, iced::window::icon::Error> {
-  const SOURCE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/assets/icon.bin"));
-
-  fn read_const<const N: usize>(bytes: &[u8]) -> [u8; N] {
-    unsafe { *(bytes.as_ptr() as *const [u8; N]) }
-  }
-
-  let width = u32::from_le_bytes(read_const(&SOURCE[0..4]));
-  let height = u32::from_le_bytes(read_const(&SOURCE[4..8]));
-  let bytes = &SOURCE[8..];
-
-  let icon = Icon::from_rgba(Vec::from(bytes), width, height)?;
+  let icon = Icon::from_rgba(Vec::from(RawIcon::PIXELS), RawIcon::WIDTH, RawIcon::HEIGHT)?;
 
   Ok(icon)
 }

@@ -1,29 +1,30 @@
-use std::io::Write;
-use std::mem::size_of;
-
 fn icon_to_raw() -> std::result::Result<(), Box<dyn std::error::Error>> {
   const SOURCE: &[u8] = include_bytes!("./assets/icon.ico");
 
   let out_dir = std::env::var("OUT_DIR")?;
   let image = ::image::load_from_memory(SOURCE)?;
   let image = image.to_rgba8();
-  let bytes = image.pixels()
+  let pixels = image.pixels()
     .map(|it| it.0.iter())
     .flatten()
     .map(|it| *it)
     .collect::<Vec<_>>();
 
-  let mut raw_bytes = Vec::with_capacity(size_of::<u32>() * 2 + bytes.len());
+  let code = format!(r"
+    struct RawIcon;
 
-  raw_bytes.write(&image.width().to_le_bytes())?;
-  raw_bytes.write(&image.height().to_le_bytes())?;
-  raw_bytes.write(&bytes)?;
+    impl RawIcon {{
+      const WIDTH: u32 = {};
+      const HEIGHT: u32 = {};
+      const PIXELS: &'static [u8] = &{:?};
+    }}
+  ", image.width(), image.height(), pixels);
 
   let dir = format!("{}/assets", out_dir);
-  let file = format!("{}/icon.bin", dir);
+  let file = format!("{}/raw_icon.rs", dir);
 
   std::fs::create_dir_all(dir)?;
-  std::fs::write(file, raw_bytes)?;
+  std::fs::write(file, code)?;
 
   Ok(())
 }
