@@ -6,24 +6,24 @@ use crate::{NAME, TITLE};
 
 pub type AnyResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-fn gen_icon() -> AnyResult<Icon> {
-  const SOURCE: &[u8] = include_bytes!("../assets/icon.ico");
+fn gen_icon() -> std::result::Result<Icon, iced::window::icon::Error> {
+  const SOURCE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/assets/icon.bin"));
 
-  let image = ::image::load_from_memory(SOURCE)?;
-  let image = image.to_rgba8();
-  let bytes = image.pixels()
-    .map(|it| it.0.iter())
-    .flatten()
-    .map(|it| *it)
-    .collect::<Vec<_>>();
+  fn read_const<const N: usize>(bytes: &[u8]) -> [u8; N] {
+    unsafe { *(bytes.as_ptr() as *const [u8; N]) }
+  }
 
-  let icon = Icon::from_rgba(bytes, 256, 256)?;
+  let width = u32::from_le_bytes(read_const(&SOURCE[0..4]));
+  let height = u32::from_le_bytes(read_const(&SOURCE[4..8]));
+  let bytes = &SOURCE[8..];
+
+  let icon = Icon::from_rgba(Vec::from(bytes), width, height)?;
 
   Ok(icon)
 }
 
 pub fn icon() -> std::result::Result<Icon, iced::Error> {
-  gen_icon().map_err(|it| iced::Error::WindowCreationFailed(it))
+  gen_icon().map_err(|it| iced::Error::WindowCreationFailed(it.into()))
 }
 
 // Need this to make CLI work, but will still hide console when ran normally (double clicking, start menu, etc)
