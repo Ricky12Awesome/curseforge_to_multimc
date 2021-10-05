@@ -1,6 +1,5 @@
 use iced::*;
 
-use crate::directory::Event;
 use crate::flags::Flags;
 use crate::TITLE;
 
@@ -24,12 +23,17 @@ pub fn run_app() -> anyhow::Result<()> {
 
 struct App;
 
+#[derive(Debug)]
+enum Message {
+  
+}
+
 impl Application for App {
   type Executor = executor::Default;
-  type Message = Event;
+  type Message = Message;
   type Flags = Flags;
 
-  fn new(flags: Flags) -> (Self, Command<Event>) {
+  fn new(flags: Flags) -> (Self, Command<Message>) {
     (App, Command::none())
   }
 
@@ -37,11 +41,11 @@ impl Application for App {
     TITLE.to_string()
   }
 
-  fn update(&mut self, message: Event, clipboard: &mut Clipboard) -> Command<Event> {
+  fn update(&mut self, message: Message, clipboard: &mut Clipboard) -> Command<Message> {
     Command::none()
   }
 
-  fn view(&mut self) -> Element<'_, Event> {
+  fn view(&mut self) -> Element<'_, Message> {
     Row::new().into()
   }
 }

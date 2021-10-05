@@ -1,15 +1,15 @@
 mod app;
 mod cli;
-mod directory;
 mod flags;
+mod instance;
+mod link;
 mod settings;
 
 const TITLE: &'static str = "Link to MultiMC";
 
 fn main() -> anyhow::Result<()> {
-
-  self::app::run_app()?;
+  println!("{:?}", crate::settings::Settings::default());
+  // self::app::run_app()?;
 
   Ok(())
 }
-

@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use crate::directory::{CurseForgeDirectory, FTBDirectory, MultiMCDirectory};
+use crate::instance::{CurseForgeDirectory, FTBDirectory, MultiMCDirectory};
 
 #[derive(Default, Debug)]
 pub struct Settings {
