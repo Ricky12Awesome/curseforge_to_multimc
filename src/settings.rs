@@ -1,13 +1,14 @@
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use crate::directory::{CurseForgeDirectory, FTBDirectory, MultiMCDirectory};
 
 #[derive(Default, Debug)]
 pub struct Settings {
-  pub mmc_path: PathBuf,
-  pub cf_path: PathBuf,
-  pub ftb_path: PathBuf,
+  pub mmc_path: MultiMCDirectory,
+  pub cf_path: CurseForgeDirectory,
+  pub ftb_path: FTBDirectory,
   // Other Launchers Paths
 }
 
@@ -57,9 +58,9 @@ impl Settings {
       }
 
       match key {
-        "mmc" => mmc_path = PathBuf::from(value),
-        "cf" => cf_path = PathBuf::from(value),
-        "ftb" => ftb_path = PathBuf::from(value),
+        "mmc" => mmc_path = MultiMCDirectory::from(value),
+        "cf" => cf_path = CurseForgeDirectory::from(value),
+        "ftb" => ftb_path = FTBDirectory::from(value),
         _ => ()
       }
     }

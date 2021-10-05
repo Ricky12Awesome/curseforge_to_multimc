@@ -1,6 +1,6 @@
 mod app;
 mod cli;
-mod event;
+mod directory;
 mod flags;
 mod settings;
 

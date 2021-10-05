@@ -1,6 +1,6 @@
 use iced::*;
 
-use crate::event::Event;
+use crate::directory::Event;
 use crate::flags::Flags;
 use crate::TITLE;
 
