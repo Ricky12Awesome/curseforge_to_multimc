@@ -1,11 +1,12 @@
 fn icon_to_raw() -> std::result::Result<(), Box<dyn std::error::Error>> {
-  const SOURCE: &[u8] = include_bytes!("./assets/icon.ico");
+  const SRC: &str = "assets/raw_icon.bin";
+  const ICON: &[u8] = include_bytes!("assets/icon.ico");
 
-  if std::path::Path::new("./assets/raw_icon.rs").exists() {
-    return Ok(())
+  if std::path::Path::new(SRC).exists() {
+    return Ok(());
   }
 
-  let image = ::image::load_from_memory(SOURCE)?;
+  let image = ::image::load_from_memory(ICON)?;
   let image = image.to_rgba8();
   let pixels = image.pixels()
     .map(|it| it.0.iter())
@@ -13,17 +14,13 @@ fn icon_to_raw() -> std::result::Result<(), Box<dyn std::error::Error>> {
     .map(|it| *it)
     .collect::<Vec<_>>();
 
-  let code = format!(r"
-struct RawIcon;
+  let mut data = Vec::<u8>::with_capacity(pixels.len() + 16);
 
-impl RawIcon {{
-  const WIDTH: u32 = {};
-  const HEIGHT: u32 = {};
-  const PIXELS: &'static [u8] = &{:?};
-}}
-  ", image.width(), image.height(), pixels);
+  data.extend_from_slice(&image.width().to_be_bytes());
+  data.extend_from_slice(&image.height().to_be_bytes());
+  data.extend_from_slice(&pixels);
 
-  std::fs::write("./assets/raw_icon.rs", code)?;
+  std::fs::write(SRC, data)?;
 
   Ok(())
 }

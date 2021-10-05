@@ -4,6 +4,24 @@ use crate::event::Event;
 use crate::flags::Flags;
 use crate::TITLE;
 
+mod icon;
+
+use self::icon::get_icon;
+
+pub fn run_app() -> anyhow::Result<()> {
+  let settings = Settings {
+    window: window::Settings {
+      icon: get_icon()?.into(),
+      ..Default::default()
+    },
+    ..Default::default()
+  };
+
+  <App as Application>::run(settings)?;
+
+  Ok(())
+}
+
 struct App;
 
 impl Application for App {

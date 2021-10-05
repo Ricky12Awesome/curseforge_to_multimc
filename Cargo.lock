@@ -482,6 +482,7 @@ dependencies = [
  "confy",
  "iced",
  "iced_native",
+ "iced_winit",
  "image",
  "native-dialog",
  "open",
