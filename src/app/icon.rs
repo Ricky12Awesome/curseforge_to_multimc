@@ -20,6 +20,8 @@ mod win_impl {
 
 #[cfg(not(windows))]
 mod not_win_impl {
+  use ced::window::Icon;
+
   const BYTES: &[u8] = include_bytes!("../../assets/raw_icon.bin");
 
   fn as_n_bytes<const N: usize>(data: &[u8]) -> [u8; N] {
@@ -28,11 +30,11 @@ mod not_win_impl {
     }
   }
 
-  pub fn get_icon() -> anyhow::Result<iced::window::Icon> {
+  pub fn get_icon() -> anyhow::Result<Icon> {
     let width = u32::from_be_bytes(as_n_bytes(&BYTES[0..4]));
     let height = u32::from_be_bytes(as_n_bytes(&BYTES[4..8]));
     let pixels = BYTES[8..].to_vec();
-    let icon = iced::window::Icon::from_rgba(pixels, width, height)?;
+    let icon = Icon::from_rgba(pixels, width, height)?;
 
     Ok(icon)
   }

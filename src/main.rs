@@ -1,5 +1,5 @@
 mod app;
-mod cmd;
+mod cli;
 mod event;
 mod flags;
 mod settings;
