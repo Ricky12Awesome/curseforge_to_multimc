@@ -1,13 +1,22 @@
+use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Settings {
   pub mmc_path: PathBuf,
   pub cf_path: PathBuf,
   pub ftb_path: PathBuf,
   // Other Launchers Paths
+}
+
+impl Display for Settings {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    writeln!(f, "mmc = {}", self.mmc_path.display())?;
+    writeln!(f, "cf = {}", self.cf_path.display())?;
+    writeln!(f, "ftb = {}", self.ftb_path.display())
+  }
 }
 
 impl Settings {
@@ -24,13 +33,7 @@ impl Settings {
   }
 
   pub fn write_to(&self, writer: &mut impl Write) -> anyhow::Result<()> {
-    let str = format!(r"
-mmc = {}
-cf = {}
-ftb = {}
-", self.mmc_path.display(), self.cf_path.display(), self.ftb_path.display());
-
-    writer.write(str.trim().as_bytes())?;
+    writer.write(format!("{}", self).as_bytes())?;
 
     Ok(())
   }
@@ -45,12 +48,13 @@ ftb = {}
       mut ftb_path
     } = Self::default();
 
-    for (line, str) in buf.lines().enumerate() {
-      let (key, value) = str
-        .split_once("=")
-        .ok_or_else(|| anyhow::Error::msg(format!("Invalid format at line {}", line)))?;
-
+    for str in buf.lines() {
+      let (key, value) = str.split_once("=").unwrap_or(("", ""));
       let (key, value) = (key.trim(), value.trim());
+
+      if key.is_empty() {
+        continue
+      }
 
       match key {
         "mmc" => mmc_path = PathBuf::from(value),

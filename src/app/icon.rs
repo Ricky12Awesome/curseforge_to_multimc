@@ -20,7 +20,7 @@ mod win_impl {
 
 #[cfg(not(windows))]
 mod not_win_impl {
-  use ced::window::Icon;
+  use iced::window::Icon;
 
   const BYTES: &[u8] = include_bytes!("../../assets/raw_icon.bin");
 
