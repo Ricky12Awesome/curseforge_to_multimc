@@ -454,7 +454,7 @@ checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "curseforge_to_multimc"
-version = "0.5.2"
+version = "0.6.0"
 dependencies = [
  "clap",
  "confy",
