@@ -37,8 +37,8 @@ fn main() -> Result {
     exit_on_close_request: false,
     window: window::Settings {
       icon: Some(icon()?),
-      size: (750, 700),
-      min_size: Some((650, 425)),
+      size: (900, 700),
+      min_size: Some((600, 425)),
       ..Default::default()
     },
     ..Default::default()
