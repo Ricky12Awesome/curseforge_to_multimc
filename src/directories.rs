@@ -61,8 +61,10 @@ directory!(MultiMCDirectory, CurseForgeDirectory);
 
 impl Default for MultiMCDirectory {
   fn default() -> Self {
-    #[cfg(windows)] let path = String::from(r"C:\Tools\MultiMC\instances");
-    #[cfg(not(windows))] let path = String::from(r"/Tools/MultiMC/instances");
+    #[cfg(windows)] let data = std::env::var("APPDATA").unwrap_or_default();
+    #[cfg(windows)] let path = format!(r"{}\MultiMC\minecraft\Instances", data);
+    #[cfg(not(windows))] let home = std::env::var("HOME").unwrap_or_default();
+    #[cfg(not(windows))] let path = format!(r"{}/.local/share/MultiMC/minecraft/Instances", home);
 
     Self { path: Path::new(&path).into() }
   }

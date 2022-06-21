@@ -4,16 +4,9 @@ A simple application to link CurseForge to MultiMC
 
 Useful when you just want to use CurseForge for updating modpacks/mods
 
-TODO
-----
-I haven't updated this in a while, here's some things I want to add
-
-- [ ] **Update info/warning text in app**
-- [ ] **Command support**
-- [ ] **FTB Launcher modpacks support**
-- [ ] **Dark theme**
-- [ ] **MacOS support** *(Installing via .deb or homebrew, I don't use mac so this is a bit annoying to test if it actually works or not)*
-- [ ] **Linux Support** *(Building yourself should work)*
+⚠️ IMPORTANT ⚠️
+--------------
+This project will go through a rewrite using tauri or potentially be implemented in PolyMC
 
 How it will work
 ----------------

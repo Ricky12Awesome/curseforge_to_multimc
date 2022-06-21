@@ -1,7 +1,7 @@
 // #![windows_subsystem = "windows"] // Doesn't work for CLI + GUI Applications
 
 use iced::*;
-use iced_native::Event;
+use iced_native::{Element, Event};
 
 use crate::directories::{CurseForgeDirectory, Directory, MultiMCDirectory};
 use crate::ext::ButtonExt;
@@ -20,7 +20,6 @@ const GITHUB_URL: &'static str = env!("CARGO_PKG_REPOSITORY");
 const ERR_COLOR: Color = Color { r: 0.8, g: 0.0, b: 0.0, a: 1.0 };
 const OK_COLOR: Color = Color { r: 0.0, g: 0.8, b: 0.0, a: 1.0 };
 const IMPORTANT_SIZE: u16 = 24;
-const IMPORTANT_COLOR: Color = Color { r: 0.0, g: 0.0, b: 0.8, a: 1.0 };
 
 macro_rules! set_info_if_err {
   ($info:expr, $value:expr) => {
@@ -38,8 +37,8 @@ fn main() -> Result {
     exit_on_close_request: false,
     window: window::Settings {
       icon: Some(icon()?),
-      size: (975, 650),
-      min_size: Some((975, 600)),
+      size: (750, 700),
+      min_size: Some((650, 425)),
       ..Default::default()
     },
     ..Default::default()
@@ -108,7 +107,7 @@ impl Application for CurseForgeToMultiMC {
     String::from(TITLE)
   }
 
-  fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Message> {
+  fn update(&mut self, message: Message) -> Command<Message> {
     match message {
       Message::MMCDirectoryChange(dir) => {
         self.mmc_d.new_path(&dir);
@@ -206,13 +205,13 @@ impl Application for CurseForgeToMultiMC {
     })
   }
 
-  fn view(&mut self) -> Element<Message> {
+  fn view(&mut self) -> Element<Message, Renderer> {
     let is_linked = self.selected_mp.clone().unwrap_or_default().is_linked(&self.mmc_d);
 
     Column::new()
       .padding(20)
       .spacing(8)
-      .align_items(Align::Center)
+      .align_items(Alignment::Center)
       .push(
         Row::new()
           .push(Text::new("MultiMC Directory: "))
@@ -295,37 +294,13 @@ impl Application for CurseForgeToMultiMC {
           Text::new("Github"),
         ).on_press(Message::OpenGithub)
       )
-      .push(Space::with_height(Length::Fill))
-      .push(Text::new("This is a simple utility to help link CurseForge instances to MultiMC instances").size(IMPORTANT_SIZE))
-      .push(Space::with_height(Length::Fill))
+      .push(Space::new(Length::Fill, Length::Fill))
       .push(
-        Text::new("Icons can't be detected, there's no way to get them from the manifest")
-          .size(IMPORTANT_SIZE)
-          .color(IMPORTANT_COLOR)
-      )
-      .push(
-        Text::new("Fabric detection only works for modpacks that support it ")
-          .size(IMPORTANT_SIZE)
-          .color(IMPORTANT_COLOR)
-      )
-      .push(Space::with_height(Length::Fill))
-      .push(
-        Text::new("Example: ")
-          .size(IMPORTANT_SIZE)
-          .color(IMPORTANT_COLOR)
-      )
-      .push(
-        Text::new("\"All Of Fabric 3\" doesn't get detected as fabric cause CurseForge still thinks it's a forge modpack")
-          .size(IMPORTANT_SIZE)
-          .color(IMPORTANT_COLOR)
-      )
-      .push(
-        Text::new("\"All Of Fabric 4\" does get detected as a fabric modpack")
-          .size(IMPORTANT_SIZE)
-          .color(IMPORTANT_COLOR)
+        Text::new("Application may be slow to respond, I do not know how to fix this, blame windows I guess")
+          .size(28)
       )
       .push(Space::new(Length::Fill, Length::Fill))
-      .push::<Element<Message>>(
+      .push::<Element<Message, Renderer>>(
         match &self.info {
           Some((color, err)) => {
             Text::new(err)
